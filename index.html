@@ -169,6 +169,63 @@ hr.div{border:none;border-top:1px solid var(--b);margin:12px 0;}
 .qbtns{display:flex;flex-wrap:wrap;gap:5px;margin-top:12px;padding-top:12px;border-top:1px solid var(--b);}
 .rand-out{background:var(--card);border:1px solid var(--acd);border-radius:6px;padding:16px 18px;margin-top:14px;max-width:580px;}
 .rand-prompt{font-family:'IM Fell English',serif;font-size:19px;color:var(--txb);line-height:1.5;margin-bottom:10px;}
+/* word count */
+.wc-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px;}
+.wc-stat{background:var(--card);border:1px solid var(--b);border-radius:5px;padding:12px 14px;}
+.wc-stat-label{font-family:'JetBrains Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:var(--txd);margin-bottom:4px;}
+.wc-stat-val{font-family:'IM Fell English',serif;font-size:26px;color:var(--txb);}
+.wc-stat-sub{font-size:11px;color:var(--txf);margin-top:2px;}
+.wc-row{background:var(--card);border:1px solid var(--b);border-radius:4px;padding:10px 13px;margin-bottom:5px;}
+.wc-row-top{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:6px;}
+.wc-row-title{font-size:15px;color:var(--txb);}
+.wc-row-nums{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--txd);}
+.wc-bar-bg{height:4px;background:var(--card2);border-radius:2px;overflow:hidden;}
+.wc-bar-fill{height:100%;border-radius:2px;transition:width .3s;}
+.wc-over{color:var(--ac);}
+/* consistency */
+.cc-issue{background:var(--card);border-left:3px solid;border-radius:0 4px 4px 0;padding:11px 14px;margin-bottom:8px;}
+.cc-issue.high{border-color:var(--dg);}
+.cc-issue.med{border-color:var(--ac);}
+.cc-issue.low{border-color:var(--tl);}
+.cc-issue.ok{border-color:var(--ok);}
+.cc-sev{font-family:'JetBrains Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.09em;margin-bottom:4px;}
+.cc-sev.high{color:var(--dg);}.cc-sev.med{color:var(--ac);}.cc-sev.low{color:var(--tl);}.cc-sev.ok{color:#5aaf6a;}
+.cc-text{font-size:14px;color:var(--tx);line-height:1.65;}
+/* export */
+.exp-section{background:var(--card);border:1px solid var(--b);border-radius:5px;padding:13px 15px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;}
+.exp-section-info{flex:1;}
+.exp-section-name{font-size:15px;color:var(--txb);margin-bottom:2px;}
+.exp-section-count{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--txd);}
+.exp-preview{background:var(--card2);border:1px solid var(--b);border-radius:4px;padding:14px 16px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--txd);line-height:1.7;white-space:pre-wrap;max-height:300px;overflow-y:auto;margin-top:14px;}
+/* chapter editor */
+.ed-wrap{display:flex;flex:1;overflow:hidden;margin-top:11px;}
+.ed-list{width:220px;border-right:1px solid var(--b);overflow-y:auto;padding:8px;flex-shrink:0;}
+.ed-list-item{padding:8px 10px;border-radius:4px;cursor:pointer;border:1px solid transparent;transition:all .12s;margin-bottom:3px;position:relative;}
+.ed-list-item:hover{background:var(--card);border-color:var(--b);}
+.ed-list-item.on{background:var(--acg);border-color:var(--acd);}
+.ed-list-title{font-size:14px;color:var(--txb);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.ed-list-meta{display:flex;align-items:center;gap:6px;margin-top:3px;}
+.ed-dot{width:5px;height:5px;border-radius:50%;background:var(--txf);flex-shrink:0;}
+.ed-dot.has{background:#5aaf6a;}
+.ed-list-wc{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--txd);}
+.ed-main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.ed-toolbar{padding:8px 14px;border-bottom:1px solid var(--b);display:flex;align-items:center;gap:9px;flex-shrink:0;background:var(--sb);}
+.ed-toolbar-title{font-family:'IM Fell English',serif;font-size:16px;color:var(--txb);flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.ed-save-status{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.06em;flex-shrink:0;}
+.ed-save-status.saved{color:var(--ok);}
+.ed-save-status.unsaved{color:var(--ac);}
+.ed-save-status.saving{color:var(--txd);}
+.ed-wc{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--txd);flex-shrink:0;}
+.ed-textarea{flex:1;background:var(--bg);border:none;color:var(--txb);font-family:'Crimson Pro',Georgia,serif;font-size:17px;line-height:1.85;padding:28px 48px;resize:none;outline:none;overflow-y:auto;}
+.ed-textarea::placeholder{color:var(--txf);}
+.ed-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:10px;color:var(--txd);}
+.ed-empty-i{font-size:36px;opacity:.2;}
+/* storage / backup */
+.stor-bar-bg{height:6px;background:var(--card2);border-radius:3px;overflow:hidden;margin:8px 0;}
+.stor-bar-fill{height:100%;border-radius:3px;transition:width .3s;}
+.bk-zone{border:2px dashed var(--b);border-radius:6px;padding:20px;text-align:center;cursor:pointer;transition:border-color .14s;}
+.bk-zone:hover{border-color:var(--acd);}
+.bk-zone-text{font-size:14px;color:var(--txd);}
 </style>
 </head>
 <body>
@@ -181,14 +238,43 @@ const AK = 'scrip_apikey';
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,5);
 const getKey = () => localStorage.getItem(AK)||'';
 const setKey = k => localStorage.setItem(AK, k.trim());
-const defPd = () => ({world:[],characters:[],outline:[],screens:[],continuityFields:[],continuityLog:[],ideas:[],foreshadowing:[]});
+const defPd = () => ({world:[],characters:[],outline:[],screens:[],continuityFields:[],continuityLog:[],ideas:[],foreshadowing:[],wordCounts:[]});
 const mergePd = pd => ({...defPd(),...pd});
 
 function loadStore() {
   try { const r = localStorage.getItem(SK); return r ? JSON.parse(r) : {projects:[],cur:null,data:{}}; }
   catch { return {projects:[],cur:null,data:{}}; }
 }
-function saveStore(d) { try { localStorage.setItem(SK, JSON.stringify(d)); } catch(e) { console.error(e); } }
+function saveStore(d, onFull) {
+  try { localStorage.setItem(SK, JSON.stringify(d)); return true; }
+  catch(e) { if(onFull) onFull(); return false; }
+}
+
+// Chapter prose stored separately to avoid the 5MB single-key limit
+const chKey = (projId, chapId) => `scrip_ch_${projId}_${chapId}`;
+function loadChapter(projId, chapId) {
+  try { return localStorage.getItem(chKey(projId, chapId)) || ''; }
+  catch { return ''; }
+}
+function saveChapter(projId, chapId, text) {
+  try { localStorage.setItem(chKey(projId, chapId), text); return true; }
+  catch { return false; }
+}
+function deleteChapter(projId, chapId) {
+  try { localStorage.removeItem(chKey(projId, chapId)); } catch {}
+}
+function getAllChapterKeys() {
+  const keys = [];
+  try { for(let i=0;i<localStorage.length;i++){ const k=localStorage.key(i); if(k&&k.startsWith('scrip_ch_')) keys.push(k); } }
+  catch {}
+  return keys;
+}
+function storageUsedBytes() {
+  let total = 0;
+  try { for(let i=0;i<localStorage.length;i++){ const k=localStorage.key(i); if(k) total += k.length + (localStorage.getItem(k)||'').length; } }
+  catch {}
+  return total * 2; // UTF-16 ~2 bytes per char
+}
 
 function Toast({msg, onDone}) {
   useEffect(() => { const t = setTimeout(onDone, 2100); return () => clearTimeout(t); }, []);
@@ -882,19 +968,634 @@ function AIAssistant({projName, projDesc, pd, pendingPrompt, onPromptConsumed, m
   );
 }
 
+/* ── CHAPTER EDITOR ── */
+function ChapterEditor({pd, projId, onUpdate, onSendToAI, setToast}) {
+  const outline = pd.outline || [];
+  const wcs = pd.wordCounts || [];
+  const sorted = outline.slice().sort((a,b) => {
+    if(a.act !== b.act) return a.act.localeCompare(b.act);
+    return Number(a.number) - Number(b.number);
+  });
+
+  const [selId, setSelId] = useState(sorted[0]?.id || null);
+  const [content, setContent] = useState('');
+  const [saveStatus, setSaveStatus] = useState('saved');
+  const saveTimer = useRef(null);
+  const textareaRef = useRef(null);
+
+  const selChapter = outline.find(c => c.id === selId);
+
+  // Load chapter content when selection or project changes
+  useEffect(() => {
+    if(!selId || !projId) return;
+    const saved = loadChapter(projId, selId);
+    setContent(saved);
+    setSaveStatus('saved');
+  }, [selId, projId]);
+
+  // Auto-save 1.5s after last keystroke
+  const handleChange = e => {
+    const val = e.target.value;
+    setContent(val);
+    setSaveStatus('unsaved');
+    if(saveTimer.current) clearTimeout(saveTimer.current);
+    saveTimer.current = setTimeout(() => {
+      setSaveStatus('saving');
+      const ok = saveChapter(projId, selId, val);
+      if(!ok) { setSaveStatus('unsaved'); setToast('⚠ Storage full — back up your data!'); return; }
+      // Sync word count to tracker
+      const wc = countWords(val);
+      const existing = wcs.find(w => w.chapterId === selId) || {};
+      const entry = {id: existing.id || uid(), chapterId: selId, actual: wc, target: existing.target || 4000};
+      const updated = existing.id ? wcs.map(w => w.id === existing.id ? entry : w) : [...wcs, entry];
+      onUpdate({wordCounts: updated});
+      setSaveStatus('saved');
+    }, 1500);
+  };
+
+  const selectChapter = id => {
+    // Save current before switching
+    if(selId && saveTimer.current) {
+      clearTimeout(saveTimer.current);
+      saveChapter(projId, selId, content);
+    }
+    setSelId(id);
+  };
+
+  const downloadChapter = () => {
+    if(!selChapter || !content.trim()) return;
+    const blob = new Blob([content], {type:'text/plain;charset=utf-8'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `ch${selChapter.number||'0'}-${selChapter.title.replace(/\s+/g,'-').toLowerCase()}.txt`;
+    a.click(); URL.revokeObjectURL(a.href);
+  };
+
+  const sendPassageToAI = mode => {
+    if(!content.trim()) return;
+    const chLabel = selChapter ? `Chapter ${selChapter.number}: "${selChapter.title}"` : 'this chapter';
+    const prompt = mode === 'edit'
+      ? `Please edit and improve the following passage from ${chLabel}. Focus on: prose rhythm, showing vs telling, character voice consistency, and cutting any redundant words. Return the revised passage with a brief note on what you changed.\n\n---\n${content.slice(0,3000)}`
+      : `Check the following passage from ${chLabel} for consistency issues against the world bible, character sheets, and continuity log. Flag anything that contradicts established facts, stats, rules, or character traits:\n\n---\n${content.slice(0,3000)}`;
+    onSendToAI(prompt);
+  };
+
+  const words = countWords(content);
+  const statusLabel = {saved:'✓ Saved', unsaved:'● Unsaved', saving:'... Saving'};
+
+  // Chapter has any saved content?
+  const hasContent = id => loadChapter(projId, id).trim().length > 0;
+
+  if(outline.length === 0) return (
+    <div style={{display:'flex',flexDirection:'column',height:'100%'}}>
+      <div className="sec-hdr"><h1 className="sec-title">Chapter <em>Editor</em></h1></div>
+      <div className="empty" style={{marginTop:60}}><div className="empty-i">✍</div><div className="empty-t">No chapters yet</div><div className="empty-s">Add chapters in the Plot tab first, then write them here</div></div>
+    </div>
+  );
+
+  return (
+    <div style={{display:'flex',flexDirection:'column',height:'100%'}}>
+      <div className="sec-hdr" style={{paddingBottom:0}}>
+        <h1 className="sec-title">Chapter <em>Editor</em></h1>
+        <div style={{fontSize:12,color:'var(--txf)',fontFamily:'JetBrains Mono',fontStyle:'normal'}}>Saves automatically · prose stored separately from project data</div>
+      </div>
+      <div className="ed-wrap">
+        {/* Chapter list */}
+        <div className="ed-list">
+          {sorted.map(ch => {
+            const wc = wcs.find(w => w.chapterId === ch.id);
+            const has = hasContent(ch.id);
+            return (
+              <div key={ch.id} className={`ed-list-item ${selId===ch.id?'on':''}`} onClick={()=>selectChapter(ch.id)}>
+                <div className="ed-list-title">{ch.number?`Ch.${ch.number} · `:''}{ch.title}</div>
+                <div className="ed-list-meta">
+                  <div className={`ed-dot ${has?'has':''}`}/>
+                  <span className="ed-list-wc">{has && wc ? countWords(loadChapter(projId,ch.id)).toLocaleString()+' w' : 'empty'}</span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Editor pane */}
+        <div className="ed-main">
+          {!selChapter ? (
+            <div className="ed-empty"><div className="ed-empty-i">✍</div><span>Select a chapter to begin writing</span></div>
+          ) : (<>
+            <div className="ed-toolbar">
+              <div className="ed-toolbar-title">
+                <span style={{fontFamily:'JetBrains Mono',fontSize:9,color:'var(--tl)',textTransform:'uppercase',letterSpacing:'.1em',marginRight:8}}>Act {selChapter.act} · Ch.{selChapter.number||'?'}</span>
+                {selChapter.title}
+              </div>
+              <span className={`ed-save-status ${saveStatus}`}>{statusLabel[saveStatus]}</span>
+              <span className="ed-wc">{words.toLocaleString()} words</span>
+              <button className="qbtn" onClick={()=>sendPassageToAI('edit')} disabled={!content.trim()} title="Send to AI for editing help">AI Edit</button>
+              <button className="qbtn" onClick={()=>sendPassageToAI('check')} disabled={!content.trim()} title="Send to AI for consistency check">AI Check</button>
+              <button className="btn btn-g btn-sm" onClick={downloadChapter} disabled={!content.trim()} title="Download chapter as .txt">↓ txt</button>
+            </div>
+            {selChapter.beats && selChapter.beats.length > 0 && (
+              <div style={{padding:'7px 48px',borderBottom:'1px solid var(--b)',display:'flex',flexWrap:'wrap',gap:6,flexShrink:0,background:'var(--sb)'}}>
+                {selChapter.beats.map((b,i) => (
+                  <span key={i} style={{fontFamily:'JetBrains Mono',fontSize:10,color:'var(--txd)',background:'var(--card)',border:'1px solid var(--b)',borderRadius:2,padding:'1px 7px'}}>◆ {b}</span>
+                ))}
+              </div>
+            )}
+            <textarea
+              ref={textareaRef}
+              className="ed-textarea"
+              value={content}
+              onChange={handleChange}
+              placeholder={`Begin Chapter ${selChapter.number||''}${selChapter.title?': '+selChapter.title:''}...\n\nThis editor auto-saves as you write. Your prose is stored separately from your project data and persists across sessions.`}
+              spellCheck={true}
+            />
+          </>)}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ── WORD COUNT TRACKER ── */
+function countWords(text) {
+  return text.trim() === '' ? 0 : text.trim().split(/\s+/).length;
+}
+function WordCountTracker({pd, onUpdate}) {
+  const wcs = pd.wordCounts || [];
+  const outline = pd.outline || [];
+  const [modal, setModal] = useState(false);
+  const [form, setForm] = useState({});
+  const [pasteText, setPasteText] = useState('');
+  const [pasteModal, setPasteModal] = useState(false);
+  const [pasteTarget, setPasteTarget] = useState(null);
+
+  // Merge outline chapters with word count data
+  const chapters = outline
+    .slice()
+    .sort((a,b) => Number(a.number) - Number(b.number))
+    .map(ch => {
+      const wc = wcs.find(w => w.chapterId === ch.id) || {};
+      return { ...ch, actual: wc.actual || 0, target: wc.target || 0, wcId: wc.id };
+    });
+
+  // Also show any word count entries not linked to outline chapters
+  const orphans = wcs.filter(w => !outline.find(ch => ch.id === w.chapterId));
+
+  const totalActual = chapters.reduce((s,c) => s + (c.actual||0), 0) + orphans.reduce((s,o) => s + (o.actual||0), 0);
+  const totalTarget = chapters.reduce((s,c) => s + (c.target||0), 0) + orphans.reduce((s,o) => s + (o.target||0), 0);
+  const chapsDone = chapters.filter(c => c.actual > 0).length;
+
+  const open = (ch) => {
+    const wc = wcs.find(w => w.chapterId === ch.id) || {};
+    setForm({ chapterId: ch.id, chapterLabel: `Ch.${ch.number} — ${ch.title}`, actual: wc.actual || 0, target: wc.target || 4000, id: wc.id });
+    setModal(true);
+  };
+
+  const openPaste = (ch) => {
+    setPasteTarget(ch);
+    setPasteText('');
+    setPasteModal(true);
+  };
+
+  const applyPaste = () => {
+    const counted = countWords(pasteText);
+    const existing = wcs.find(w => w.chapterId === pasteTarget.id) || {};
+    const entry = { id: existing.id || uid(), chapterId: pasteTarget.id, actual: counted, target: existing.target || 4000 };
+    const updated = existing.id ? wcs.map(w => w.id === existing.id ? entry : w) : [...wcs, entry];
+    onUpdate({ wordCounts: updated });
+    setPasteModal(false);
+  };
+
+  const save2 = () => {
+    const entry = { id: form.id || uid(), chapterId: form.chapterId, actual: Number(form.actual) || 0, target: Number(form.target) || 0 };
+    const updated = form.id ? wcs.map(w => w.id === form.id ? entry : w) : [...wcs, entry];
+    onUpdate({ wordCounts: updated });
+    setModal(false);
+  };
+
+  const pct = (actual, target) => target > 0 ? Math.min(100, Math.round((actual / target) * 100)) : 0;
+  const barColor = (actual, target) => {
+    if (target === 0 || actual === 0) return 'var(--b)';
+    const p = actual / target;
+    if (p >= 1.1) return 'var(--ac)';
+    if (p >= 0.9) return '#5aaf6a';
+    if (p >= 0.5) return 'var(--tl)';
+    return 'var(--txd)';
+  };
+  const fmtN = n => n >= 1000 ? `${(n/1000).toFixed(1)}k` : String(n);
+
+  return (
+    <div style={{display:'flex',flexDirection:'column',height:'100%'}}>
+      <div className="sec-hdr">
+        <h1 className="sec-title">Word Count <em>Tracker</em></h1>
+        <div style={{display:'flex',gap:7,alignItems:'center'}}>
+          {outline.length === 0 && <span style={{fontFamily:'JetBrains Mono',fontSize:10,color:'var(--txf)'}}>Add chapters in Plot first</span>}
+        </div>
+      </div>
+      <div style={{flex:1,overflowY:'auto',padding:'14px 20px'}}>
+        {/* Summary cards */}
+        <div className="wc-summary">
+          <div className="wc-stat">
+            <div className="wc-stat-label">Total Written</div>
+            <div className="wc-stat-val">{fmtN(totalActual)}</div>
+            <div className="wc-stat-sub">words</div>
+          </div>
+          <div className="wc-stat">
+            <div className="wc-stat-label">Target Total</div>
+            <div className="wc-stat-val">{fmtN(totalTarget)}</div>
+            <div className="wc-stat-sub">{totalTarget > 0 ? `${pct(totalActual,totalTarget)}% complete` : 'set targets below'}</div>
+          </div>
+          <div className="wc-stat">
+            <div className="wc-stat-label">Chapters Drafted</div>
+            <div className="wc-stat-val">{chapsDone}</div>
+            <div className="wc-stat-sub">of {chapters.length} chapters</div>
+          </div>
+        </div>
+
+        {outline.length === 0 && (
+          <div className="empty"><div className="empty-i">📊</div><div className="empty-t">No chapters in outline yet</div><div className="empty-s">Add chapters in the Plot tab first, then track word counts here</div></div>
+        )}
+
+        {chapters.map(ch => (
+          <div key={ch.id} className="wc-row">
+            <div className="wc-row-top">
+              <div>
+                <span style={{fontFamily:'JetBrains Mono',fontSize:9,color:'var(--tl)',textTransform:'uppercase',letterSpacing:'.1em',marginRight:8}}>Ch.{ch.number}</span>
+                <span className="wc-row-title">{ch.title}</span>
+              </div>
+              <div style={{display:'flex',alignItems:'center',gap:10}}>
+                <span className={`wc-row-nums ${ch.target>0&&ch.actual>ch.target*1.05?'wc-over':''}`}>
+                  {ch.actual > 0 ? fmtN(ch.actual) : '—'}
+                  {ch.target > 0 && <span style={{color:'var(--txf)'}}> / {fmtN(ch.target)}</span>}
+                </span>
+                <button className="qbtn" onClick={() => openPaste(ch)}>Paste & Count</button>
+                <button className="ib" onClick={() => open(ch)} title="Edit">✎</button>
+              </div>
+            </div>
+            <div className="wc-bar-bg">
+              <div className="wc-bar-fill" style={{width:`${pct(ch.actual,ch.target)}%`,background:barColor(ch.actual,ch.target)}}/>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Manual edit modal */}
+      {modal && <div className="overlay" onClick={e=>e.target.className==='overlay'&&setModal(false)}><div className="modal">
+        <div className="m-title">{form.chapterLabel}</div>
+        <div className="f2">
+          <div className="fg"><label className="fl">Word Count</label><input className="fi" type="number" value={form.actual} onChange={e=>setForm({...form,actual:e.target.value})} autoFocus min={0}/></div>
+          <div className="fg"><label className="fl">Target</label><input className="fi" type="number" value={form.target} onChange={e=>setForm({...form,target:e.target.value})} min={0}/></div>
+        </div>
+        <p style={{fontSize:12,color:'var(--txf)',marginBottom:4}}>Or use "Paste & Count" to count automatically from pasted text.</p>
+        <div className="m-foot"><button className="btn btn-g" onClick={()=>setModal(false)}>Cancel</button><button className="btn btn-a" onClick={save2}>Save</button></div>
+      </div></div>}
+
+      {/* Paste & count modal */}
+      {pasteModal && <div className="overlay" onClick={e=>e.target.className==='overlay'&&setPasteModal(false)}><div className="modal">
+        <div className="m-title">Paste & Count — Ch.{pasteTarget?.number} {pasteTarget?.title}</div>
+        <div className="fg">
+          <label className="fl">Paste your chapter text here</label>
+          <textarea className="fta" style={{minHeight:200}} value={pasteText} onChange={e=>setPasteText(e.target.value)} placeholder="Paste the full chapter text... the word count will be calculated automatically."/>
+        </div>
+        <div style={{fontFamily:'JetBrains Mono',fontSize:13,color:'var(--ac)',marginBottom:12}}>
+          {countWords(pasteText).toLocaleString()} words counted
+        </div>
+        <div className="m-foot"><button className="btn btn-g" onClick={()=>setPasteModal(false)}>Cancel</button><button className="btn btn-a" onClick={applyPaste} disabled={pasteText.trim()===''}>Save Count</button></div>
+      </div></div>}
+    </div>
+  );
+}
+
+/* ── CONSISTENCY CHECKER ── */
+function ConsistencyChecker({pd, projName}) {
+  const [passage, setPassage] = useState('');
+  const [result, setResult] = useState(null);
+  const [busy, setBusy] = useState(false);
+  const [mode, setMode] = useState('passage'); // 'passage' | 'stats'
+  const world = pd.world || []; const chars = pd.characters || [];
+  const log = pd.continuityLog || []; const fields = pd.continuityFields || [];
+
+  const buildSys = () => {
+    let p = `You are a meticulous consistency editor for the LitRPG project "${projName||'Untitled'}". Your job is to find contradictions, errors, and inconsistencies in a passage of prose when compared against the established world rules, character sheets, and continuity log below.\n\nReturn your analysis as a JSON array of issue objects. Each object must have:\n- "severity": "high" | "medium" | "low" | "ok"\n- "text": a clear, specific description of the issue or confirmation\n\nIf there are no issues, return a single object with severity "ok" and a brief positive note. Be specific — quote exact details from the passage and the reference material. Return ONLY valid JSON, no markdown, no preamble.`;
+    if(world.length){p+='\n\n=== WORLD BIBLE ===';world.forEach(e=>{p+=`\n[${e.category.toUpperCase()}] ${e.title}: ${e.content}`;});}
+    if(chars.length){p+='\n\n=== CHARACTERS ===';chars.forEach(c=>{p+=`\n${c.title} | ${c.role}${c.class?` | ${c.class}`:''}${c.level?` | Lv${c.level}`:''}`;if(Object.keys(c.stats||{}).length)p+=` | Stats: ${Object.entries(c.stats).map(([k,v])=>`${k}:${v}`).join(', ')}`;if(c.traits)p+=`\nTraits: ${c.traits}`;if(c.background)p+=`\nBackground: ${c.background}`;});}
+    if(fields.length&&log.length){p+='\n\n=== CONTINUITY LOG (chapter-by-chapter values) ===';log.sort((a,b)=>Number(a.chapterNum)-Number(b.chapterNum)).forEach(e=>{p+=`\nCh.${e.chapterNum} "${e.chapterTitle}": ${fields.map(f=>`${f}=${e.values?.[f]||'?'}`).join(', ')}`;});}
+    return p;
+  };
+
+  const check = async () => {
+    if (!passage.trim()) return;
+    const key = getKey();
+    if (!key) { setResult([{severity:'high',text:'No API key set — click the 🔑 key icon in the header to add your Anthropic API key.'}]); return; }
+    setBusy(true); setResult(null);
+    const prompt = mode === 'stats'
+      ? `Check the following passage specifically for any numerical stat values, levels, integration percentages, essence counts, or system-defined numbers that contradict the continuity log or character sheets:\n\n${passage}`
+      : `Check the following passage for any inconsistencies with the world bible, character traits, established rules, or continuity log. Look for: wrong character behaviours, violated world rules, incorrect stat references, anachronistic abilities, contradicted lore:\n\n${passage}`;
+    try {
+      const r = await fetch('https://api.anthropic.com/v1/messages',{
+        method:'POST',
+        headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+        body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1500,system:buildSys(),messages:[{role:'user',content:prompt}]})
+      });
+      if(!r.ok){const e=await r.json().catch(()=>({}));throw new Error(e?.error?.message||`API error ${r.status}`);}
+      const d = await r.json();
+      const txt = d.content?.find(b=>b.type==='text')?.text||'[]';
+      const clean = txt.replace(/```json|```/g,'').trim();
+      const issues = JSON.parse(clean);
+      setResult(Array.isArray(issues) ? issues : [{severity:'ok',text:String(issues)}]);
+    } catch(e) {
+      if(e.message.includes('JSON')){setResult([{severity:'low',text:'The AI returned an unstructured response. Try again or rephrase the passage.'}]);}
+      else{setResult([{severity:'high',text:'Error: '+e.message}]);}
+    }
+    setBusy(false);
+  };
+
+  const sevLabel = {high:'⚠ Inconsistency',med:'◆ Possible Issue',low:'◈ Minor Note',ok:'✓ Looks Good'};
+  const hasData = world.length > 0 || chars.length > 0;
+
+  return (
+    <div style={{display:'flex',flexDirection:'column',height:'100%'}}>
+      <div className="sec-hdr"><h1 className="sec-title">Consistency <em>Checker</em></h1>
+        <div style={{display:'flex',gap:6}}>
+          <button className={`btn btn-sm ${mode==='passage'?'btn-a':'btn-g'}`} onClick={()=>setMode('passage')}>Full Check</button>
+          <button className={`btn btn-sm ${mode==='stats'?'btn-a':'btn-g'}`} onClick={()=>setMode('stats')}>Stats Only</button>
+        </div>
+      </div>
+      {!hasData && <div style={{padding:'10px 20px',flexShrink:0}}><div style={{background:'var(--dgd)',border:'1px solid rgba(155,64,64,.3)',borderRadius:4,padding:'8px 12px',fontSize:13,color:'var(--dg)',fontFamily:'JetBrains Mono'}}>⚠ Add world bible entries and characters first — the checker needs reference data to work against.</div></div>}
+      <div style={{flex:1,overflowY:'auto',padding:'12px 20px'}}>
+        <div style={{maxWidth:680}}>
+          <div className="fg">
+            <label className="fl">{mode==='passage'?'Paste a passage to check against your world data':'Paste a passage to check stat values and numbers'}</label>
+            <textarea className="fta" style={{minHeight:180}} value={passage} onChange={e=>setPassage(e.target.value)} placeholder={mode==='passage'?'Paste any prose passage here — the checker will compare it against your world bible, character sheets, and continuity log...':'Paste a passage containing stat values, levels, percentages, or other tracked numbers...'}/>
+          </div>
+          <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:16}}>
+            <button className="btn btn-a" onClick={check} disabled={busy||!passage.trim()||!hasData}>{busy?'Checking...':'Run Consistency Check'}</button>
+            {result && <button className="btn btn-g btn-sm" onClick={()=>{setResult(null);setPassage('');}}>Clear</button>}
+            <span style={{fontFamily:'JetBrains Mono',fontSize:10,color:'var(--txf)',marginLeft:'auto'}}>{passage.trim()===''?'':countWords(passage)+' words'}</span>
+          </div>
+
+          {busy && <div style={{display:'flex',gap:5,alignItems:'center',margin:'8px 0 16px'}}>
+            <div className="dot"/><div className="dot"/><div className="dot"/>
+            <span style={{fontFamily:'JetBrains Mono',fontSize:11,color:'var(--txd)',marginLeft:6}}>Reading against {world.length} lore entries, {chars.length} characters{log.length?' and '+log.length+' log entries':''}...</span>
+          </div>}
+
+          {result && <div>
+            <div style={{fontFamily:'JetBrains Mono',fontSize:10,color:'var(--txd)',textTransform:'uppercase',letterSpacing:'.1em',marginBottom:10}}>
+              {result.filter(i=>i.severity==='high').length} critical · {result.filter(i=>i.severity==='medium'||i.severity==='med').length} possible · {result.filter(i=>i.severity==='low').length} minor
+            </div>
+            {result.map((issue, i) => {
+              const sev = issue.severity === 'medium' ? 'med' : issue.severity;
+              return (
+                <div key={i} className={`cc-issue ${sev}`}>
+                  <div className={`cc-sev ${sev}`}>{sevLabel[sev]||sevLabel.low}</div>
+                  <div className="cc-text">{issue.text}</div>
+                </div>
+              );
+            })}
+          </div>}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ── SERIES BIBLE EXPORT ── */
+function buildBible(projName, projDesc, pd) {
+  const world = pd.world || []; const chars = pd.characters || [];
+  const outline = pd.outline || []; const log = pd.continuityLog || [];
+  const fields = pd.continuityFields || []; const foreshadow = pd.foreshadowing || [];
+  const wcs = pd.wordCounts || [];
+  const hr = (char='─', len=60) => char.repeat(len);
+  const lines = [];
+
+  lines.push('SCRIPTORIUM — SERIES BIBLE EXPORT');
+  lines.push(hr('═'));
+  lines.push(`PROJECT: ${projName||'Untitled'}`);
+  if(projDesc) lines.push(`DESCRIPTION: ${projDesc}`);
+  lines.push(`EXPORTED: ${new Date().toLocaleDateString('en-AU',{day:'numeric',month:'long',year:'numeric'})}`);
+  lines.push('');
+
+  if(world.length){
+    lines.push(hr('─'));
+    lines.push('WORLD BIBLE');
+    lines.push(hr('─'));
+    const cats = [...new Set(world.map(e=>e.category))];
+    cats.forEach(cat=>{
+      lines.push('');lines.push(`[ ${cat.toUpperCase()} ]`);lines.push('');
+      world.filter(e=>e.category===cat).forEach(e=>{
+        lines.push(`${e.title}`);lines.push(hr('-',e.title.length));
+        lines.push(e.content);lines.push('');
+      });
+    });
+  }
+
+  if(chars.length){
+    lines.push(hr('─'));
+    lines.push('CHARACTERS');
+    lines.push(hr('─'));
+    chars.forEach(c=>{
+      lines.push('');
+      lines.push(`${c.title}`);
+      lines.push(hr('-',c.title.length));
+      lines.push(`Role: ${c.role}${c.class?` | Class: ${c.class}`:''}${c.level?` | Level: ${c.level}`:''}`);
+      if(Object.keys(c.stats||{}).length){lines.push('');lines.push('Stats:');Object.entries(c.stats).forEach(([k,v])=>lines.push(`  ${k}: ${v}`));}
+      if(c.traits){lines.push('');lines.push('Traits / Personality:');lines.push(c.traits);}
+      if(c.voice){lines.push('');lines.push('Voice & Dialogue Tone:');lines.push(c.voice);}
+      if(c.background){lines.push('');lines.push('Background:');lines.push(c.background);}
+      if(c.notes){lines.push('');lines.push('Notes:');lines.push(c.notes);}
+      lines.push('');
+    });
+  }
+
+  if(outline.length){
+    lines.push(hr('─'));
+    lines.push('STORY OUTLINE');
+    lines.push(hr('─'));
+    const acts=[...new Set(outline.map(c=>c.act))].sort();
+    acts.forEach(act=>{
+      lines.push('');lines.push(`ACT ${act}`);lines.push('');
+      outline.filter(c=>c.act===act).sort((a,b)=>Number(a.number)-Number(b.number)).forEach(c=>{
+        const wc = wcs.find(w=>w.chapterId===c.id);
+        lines.push(`Chapter ${c.number||'?'}: ${c.title}${wc&&wc.actual>0?' ['+wc.actual.toLocaleString()+' words]':''}`);
+        if(c.beats.length){c.beats.forEach(b=>lines.push(`  ◆ ${b}`));}
+        if(c.notes){lines.push(`  Note: ${c.notes}`);}
+        lines.push('');
+      });
+    });
+  }
+
+  if(fields.length&&log.length){
+    lines.push(hr('─'));
+    lines.push('CONTINUITY LOG');
+    lines.push(hr('─'));
+    lines.push('');
+    const header = ['Ch.'.padEnd(5), 'Title'.padEnd(25), ...fields.map(f=>f.padEnd(16))].join(' ');
+    lines.push(header);lines.push(hr('-',header.length));
+    log.sort((a,b)=>Number(a.chapterNum)-Number(b.chapterNum)).forEach(e=>{
+      const row=[String(e.chapterNum||'?').padEnd(5),(e.chapterTitle||'').slice(0,24).padEnd(25),...fields.map(f=>String(e.values?.[f]||'—').padEnd(16))];
+      lines.push(row.join(' '));
+    });
+    lines.push('');
+  }
+
+  if(foreshadow.length){
+    lines.push(hr('─'));
+    lines.push('FORESHADOWING');
+    lines.push(hr('─'));
+    lines.push('');
+    const planted = foreshadow.filter(i=>!i.resolved);
+    const resolved = foreshadow.filter(i=>i.resolved);
+    if(planted.length){lines.push('PLANTED (awaiting payoff):');planted.forEach(i=>{lines.push(`  Ch.${i.chapterPlanted}: ${i.detail}`);if(i.payoff)lines.push(`    → Payoff: ${i.payoff}`);lines.push('');});}
+    if(resolved.length){lines.push('RESOLVED:');resolved.forEach(i=>{lines.push(`  Ch.${i.chapterPlanted}→Ch.${i.chapterResolved||'?'}: ${i.detail}`);lines.push('');});}
+  }
+
+  lines.push(hr('═'));
+  lines.push('END OF SERIES BIBLE');
+  return lines.join('\n');
+}
+
+function SeriesBibleExport({pd, projName, projDesc, projId, app, onRestoreApp, setToast}) {
+  const [preview, setPreview] = useState(false);
+  const [restoring, setRestoring] = useState(false);
+  const fileRef = useRef(null);
+
+  const world = pd.world||[]; const chars = pd.characters||[];
+  const outline = pd.outline||[]; const log = pd.continuityLog||[];
+  const foreshadow = pd.foreshadowing||[]; const wcs = pd.wordCounts||[];
+  const fields = pd.continuityFields||[];
+  const totalWords = wcs.reduce((s,w)=>s+w.actual,0);
+  const hasAny = world.length>0||chars.length>0||outline.length>0;
+
+  const usedBytes = storageUsedBytes();
+  const limitBytes = 5 * 1024 * 1024;
+  const usedPct = Math.min(100, Math.round((usedBytes / limitBytes) * 100));
+  const usedKB = (usedBytes / 1024).toFixed(0);
+  const barColor = usedPct > 80 ? 'var(--dg)' : usedPct > 60 ? 'var(--ac)' : '#5aaf6a';
+
+  const backupAll = () => {
+    const chapterData = {};
+    getAllChapterKeys().forEach(k => { chapterData[k] = localStorage.getItem(k)||''; });
+    const backup = { version:3, timestamp:Date.now(), store: app, chapters: chapterData };
+    const blob = new Blob([JSON.stringify(backup, null, 2)], {type:'application/json'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `scriptorium-backup-${new Date().toISOString().slice(0,10)}.json`;
+    a.click(); URL.revokeObjectURL(a.href);
+    setToast('Full backup downloaded');
+  };
+
+  const handleRestoreFile = e => {
+    const file = e.target.files[0]; if(!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      try {
+        const backup = JSON.parse(ev.target.result);
+        if(!backup.store || !backup.version) throw new Error('Invalid backup file');
+        if(!window.confirm('This will replace ALL current project data. Are you sure?')) return;
+        setRestoring(true);
+        localStorage.setItem(SK, JSON.stringify(backup.store));
+        if(backup.chapters) { Object.entries(backup.chapters).forEach(([k,v]) => localStorage.setItem(k,v)); }
+        onRestoreApp(backup.store);
+        setToast('Backup restored successfully');
+        setRestoring(false);
+      } catch(err) { setToast('Could not read backup: '+err.message); setRestoring(false); }
+    };
+    reader.readAsText(file); e.target.value = '';
+  };
+
+  const downloadBible = () => {
+    const text = buildBible(projName, projDesc, pd);
+    const blob = new Blob([text], {type:'text/plain;charset=utf-8'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `${(projName||'project').replace(/\s+/g,'-').toLowerCase()}-series-bible.txt`;
+    a.click(); URL.revokeObjectURL(a.href);
+  };
+
+  const copyBible = () => { navigator.clipboard.writeText(buildBible(projName, projDesc, pd)); setToast('Copied to clipboard'); };
+
+  const sections = [
+    {name:'World Bible',       count:`${world.length} entries`,    has:world.length>0},
+    {name:'Characters',        count:`${chars.length} characters`,  has:chars.length>0},
+    {name:'Story Outline',     count:`${outline.length} chapters`,  has:outline.length>0},
+    {name:'Continuity Log',    count:fields.length?`${log.length} entries`:'no fields set', has:log.length>0},
+    {name:'Foreshadowing',     count:`${foreshadow.filter(i=>!i.resolved).length} planted, ${foreshadow.filter(i=>i.resolved).length} resolved`, has:foreshadow.length>0},
+    {name:'Word Count Data',   count:totalWords>0?`${totalWords.toLocaleString()} words logged`:'none', has:wcs.length>0},
+  ];
+
+  return (
+    <div style={{display:'flex',flexDirection:'column',height:'100%'}}>
+      <div className="sec-hdr"><h1 className="sec-title">Export <em>&amp; Backup</em></h1></div>
+      <div style={{flex:1,overflowY:'auto',padding:'14px 20px'}}>
+        <div style={{maxWidth:640}}>
+          <div style={{background:'var(--card)',border:'1px solid var(--b)',borderRadius:5,padding:'13px 15px',marginBottom:20}}>
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'baseline',marginBottom:4}}>
+              <span style={{fontFamily:'JetBrains Mono',fontSize:10,textTransform:'uppercase',letterSpacing:'.09em',color:'var(--txd)'}}>Local Storage Usage</span>
+              <span style={{fontFamily:'JetBrains Mono',fontSize:11,color:usedPct>80?'var(--dg)':'var(--txd)'}}>{usedKB} KB / ~5,000 KB</span>
+            </div>
+            <div className="stor-bar-bg"><div className="stor-bar-fill" style={{width:`${usedPct}%`,background:barColor}}/></div>
+            <div style={{fontSize:12,color:'var(--txf)',marginTop:5}}>
+              {usedPct > 80 ? '⚠ Storage nearly full — back up and clear old projects.' : usedPct > 60 ? 'Getting full — back up regularly.' : 'Healthy. Back up regularly to stay safe.'}
+            </div>
+          </div>
+
+          <div style={{fontFamily:'JetBrains Mono',fontSize:10,color:'var(--tl)',textTransform:'uppercase',letterSpacing:'.1em',marginBottom:10}}>Full Data Backup &amp; Restore</div>
+          <div style={{background:'var(--card)',border:'1px solid var(--b)',borderRadius:5,padding:'13px 15px',marginBottom:6,display:'flex',alignItems:'center',justifyContent:'space-between',gap:12}}>
+            <div>
+              <div style={{fontSize:15,color:'var(--txb)',marginBottom:3}}>Download Full Backup</div>
+              <div style={{fontFamily:'JetBrains Mono',fontSize:10,color:'var(--txd)'}}>All projects + chapter prose → .json file you can restore later</div>
+            </div>
+            <button className="btn btn-a btn-sm" onClick={backupAll}>↓ Backup .json</button>
+          </div>
+          <div style={{background:'var(--card)',border:'1px solid var(--b)',borderRadius:5,padding:'13px 15px',marginBottom:24,display:'flex',alignItems:'center',justifyContent:'space-between',gap:12}}>
+            <div>
+              <div style={{fontSize:15,color:'var(--txb)',marginBottom:3}}>Restore from Backup</div>
+              <div style={{fontFamily:'JetBrains Mono',fontSize:10,color:'var(--dg)'}}>⚠ Replaces all current data</div>
+            </div>
+            <button className="btn btn-d btn-sm" onClick={()=>fileRef.current&&fileRef.current.click()} disabled={restoring}>{restoring?'Restoring...':'Upload .json'}</button>
+            <input ref={fileRef} type="file" accept=".json" style={{display:'none'}} onChange={handleRestoreFile}/>
+          </div>
+
+          <div style={{fontFamily:'JetBrains Mono',fontSize:10,color:'var(--tl)',textTransform:'uppercase',letterSpacing:'.1em',marginBottom:10}}>Series Bible — Current Project</div>
+          <div style={{display:'flex',gap:7,marginBottom:12}}>
+            <button className="btn btn-g btn-sm" onClick={()=>setPreview(!preview)}>{preview?'Hide Preview':'Preview'}</button>
+            <button className="btn btn-t btn-sm" onClick={copyBible} disabled={!hasAny}>Copy</button>
+            <button className="btn btn-a btn-sm" onClick={downloadBible} disabled={!hasAny}>↓ Download .txt</button>
+          </div>
+          {sections.map(s=>(
+            <div key={s.name} className="exp-section">
+              <div className="exp-section-info">
+                <div className="exp-section-name">{s.name}</div>
+                <div className="exp-section-count">{s.count}</div>
+              </div>
+              <div style={{fontFamily:'JetBrains Mono',fontSize:11,padding:'2px 8px',borderRadius:2,background:s.has?'rgba(74,124,90,0.15)':'var(--card2)',color:s.has?'#5aaf6a':'var(--txf)',border:`1px solid ${s.has?'rgba(74,124,90,0.4)':'var(--b)'}`}}>
+                {s.has?'✓ Included':'Empty'}
+              </div>
+            </div>
+          ))}
+          {!hasAny && <div className="empty" style={{marginTop:10}}><div className="empty-i">📄</div><div className="empty-t">Nothing to export yet</div></div>}
+          {preview && hasAny && <div><div className="fl" style={{marginTop:14,marginBottom:8}}>Preview</div><div className="exp-preview">{buildBible(projName, projDesc, pd)}</div></div>}
+        </div>
+      </div>
+    </div>
+  );
+}
 /* ── MAIN APP ── */
 const TABS = [
-  {id:'world',ico:'📜',lbl:'LORE',div:false},
-  {id:'characters',ico:'⚔',lbl:'CHARS',div:false},
-  {id:'outline',ico:'📋',lbl:'PLOT',div:true},
-  {id:'log',ico:'📊',lbl:'LOG',div:false},
-  {id:'foreshadow',ico:'🔮',lbl:'FORE',div:false},
-  {id:'ideas',ico:'💡',lbl:'IDEAS',div:true},
-  {id:'screens',ico:'🖥',lbl:'SCRN',div:false},
-  {id:'names',ico:'🎲',lbl:'NAMES',div:false},
-  {id:'scaffold',ico:'🏗',lbl:'SCAF',div:false},
-  {id:'prompts',ico:'📝',lbl:'PROMPTS',div:true},
-  {id:'ai',ico:'✦',lbl:'AI',div:false},
+  {id:'world',      ico:'📜', lbl:'LORE',    div:false},
+  {id:'characters', ico:'⚔',  lbl:'CHARS',   div:false},
+  {id:'outline',    ico:'📋', lbl:'PLOT',    div:false},
+  {id:'draft',      ico:'✍',  lbl:'DRAFT',   div:true},
+  {id:'log',        ico:'📊', lbl:'LOG',     div:false},
+  {id:'foreshadow', ico:'🔮', lbl:'FORE',    div:false},
+  {id:'ideas',      ico:'💡', lbl:'IDEAS',   div:true},
+  {id:'screens',    ico:'🖥', lbl:'SCRN',    div:false},
+  {id:'names',      ico:'🎲', lbl:'NAMES',   div:false},
+  {id:'scaffold',   ico:'🏗', lbl:'SCAF',    div:false},
+  {id:'prompts',    ico:'📝', lbl:'PROMPTS', div:true},
+  {id:'words',      ico:'#',  lbl:'WORDS',   div:false},
+  {id:'check',      ico:'🔍', lbl:'CHECK',   div:false},
+  {id:'export',     ico:'↓',  lbl:'EXPORT',  div:false},
+  {id:'ai',         ico:'✦',  lbl:'AI',      div:true},
 ];
 
 function App() {
@@ -912,7 +1613,11 @@ function App() {
 
   const onSendToAI = text => { setAiDraft(text); setTab('ai'); };
   const curMsgs = aiMsgs[app?.cur] || [];
-  const setCurMsgs = msgs => setAiMsgs(prev => ({...prev, [app?.cur]: msgs}));
+  const setCurMsgs = updater => setAiMsgs(prev => {
+    const cur = prev[app?.cur] || [];
+    const next = typeof updater === 'function' ? updater(cur) : updater;
+    return {...prev, [app?.cur]: next};
+  });
 
   useEffect(() => {
     const d = loadStore(); setApp(d); setLoading(false);
@@ -922,7 +1627,8 @@ function App() {
   const saveKey = () => { setKey(keyInput); setHasKey(!!keyInput.trim()); setKeyModal(false); setToast('API key saved!'); };
   const clearKey = () => { setKey(''); setHasKey(false); setKeyInput(''); setToast('API key cleared'); };
 
-  const update = d => { setApp(d); saveStore(d); };
+  const update = d => { setApp(d); saveStore(d, () => setToast('⚠ Storage full — please back up and delete old projects')); };
+  const onRestoreApp = store => { setApp(store); };
   const curProj = app?.projects.find(p=>p.id===app.cur);
   const curPd = mergePd(app?.data[app?.cur]||{});
   const updPd = patch => update({...app,data:{...app.data,[app.cur]:{...curPd,...patch}}});
@@ -963,14 +1669,18 @@ function App() {
                 {tab==='world'       && <WorldBible        pd={curPd} onUpdate={updPd} onSendToAI={onSendToAI}/>}
                 {tab==='characters'  && <Characters        pd={curPd} onUpdate={updPd} onSendToAI={onSendToAI}/>}
                 {tab==='outline'     && <Outline           pd={curPd} onUpdate={updPd} onSendToAI={onSendToAI}/>}
+                {tab==='draft'       && <ChapterEditor     pd={curPd} projId={curProj.id} onUpdate={updPd} onSendToAI={onSendToAI} setToast={setToast}/>}
                 {tab==='screens'     && <SystemScreens     pd={curPd} onUpdate={updPd} toast={setToast}/>}
                 {tab==='log'         && <ContinuityLog     pd={curPd} onUpdate={updPd}/>}
                 {tab==='ideas'       && <IdeaCapture       pd={curPd} onUpdate={updPd}/>}
                 {tab==='foreshadow'  && <ForeshadowTracker pd={curPd} onUpdate={updPd}/>}
                 {tab==='names'       && <NameGenerator     pd={curPd} projName={curProj.name}/>}
                 {tab==='scaffold'    && <SceneScaffold     pd={curPd} projName={curProj.name} projDesc={curProj.description}/>}
-                {tab==='prompts'     && <PromptLibrary     onSendToAI={onSendToAI}/>}
-                {tab==='ai'          && <AIAssistant       projName={curProj.name} projDesc={curProj.description} pd={curPd} pendingPrompt={aiDraft} onPromptConsumed={()=>setAiDraft(null)} msgs={curMsgs} setMsgs={setCurMsgs}/>}
+                {tab==='prompts'     && <PromptLibrary      onSendToAI={onSendToAI}/>}
+                {tab==='words'       && <WordCountTracker   pd={curPd} onUpdate={updPd}/>}
+                {tab==='check'       && <ConsistencyChecker pd={curPd} projName={curProj.name}/>}
+                {tab==='export'      && <SeriesBibleExport  pd={curPd} projName={curProj.name} projDesc={curProj.description} projId={curProj.id} app={app} onRestoreApp={onRestoreApp} setToast={setToast}/>}
+                {tab==='ai'          && <AIAssistant        projName={curProj.name} projDesc={curProj.description} pd={curPd} pendingPrompt={aiDraft} onPromptConsumed={()=>setAiDraft(null)} msgs={curMsgs} setMsgs={setCurMsgs}/>}
               </>}
         </div>
       </div>
