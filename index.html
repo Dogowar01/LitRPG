@@ -894,14 +894,46 @@ function SceneScaffold({pd, projName, projDesc}) {
 }
 
 /* ── AI ASSISTANT ── */
-function AIAssistant({projName, projDesc, pd, pendingPrompt, onPromptConsumed, msgs, setMsgs}) {
-  const [input, setInput] = useState(''); const [busy, setBusy] = useState(false);
+function AIAssistant({projName, projDesc, pd, projId, pendingPrompt, onPromptConsumed, savedMsgs, onSaveMsgs}) {
+  // Local state for correct async behaviour — no closure/stale-state issues
+  const [msgs, setMsgs] = useState(savedMsgs || []);
+  const [input, setInput] = useState('');
+  const [busy, setBusy] = useState(false);
   const bottomRef = useRef(null);
+  const msgsRef = useRef(msgs);  // ref so async callbacks always have the latest value
+
+  // Keep ref in sync with state
+  const updateMsgs = updater => {
+    setMsgs(prev => {
+      const next = typeof updater === 'function' ? updater(prev) : updater;
+      msgsRef.current = next;
+      return next;
+    });
+  };
+
+  // When project changes, load saved messages for that project
+  useEffect(() => {
+    const initial = savedMsgs || [];
+    setMsgs(initial);
+    msgsRef.current = initial;
+  }, [projId]);
+
+  // Save messages back to App on unmount (tab switch or project change)
+  useEffect(() => {
+    return () => { if(projId) onSaveMsgs(projId, msgsRef.current); };
+  }, [projId]);
+
+  useEffect(() => { bottomRef.current?.scrollIntoView({behavior:'smooth'}); }, [msgs]);
+
+  // When a prompt is sent from another tab, populate the input
+  useEffect(() => {
+    if(pendingPrompt) { setInput(pendingPrompt); onPromptConsumed && onPromptConsumed(); }
+  }, [pendingPrompt]);
+
   const world=pd.world||[]; const chars=pd.characters||[]; const outline=pd.outline||[];
   const foreshadow=pd.foreshadowing||[]; const log=pd.continuityLog||[]; const fields=pd.continuityFields||[];
   const ctxCount = world.length+chars.length+outline.length;
-  useEffect(()=>{ bottomRef.current?.scrollIntoView({behavior:'smooth'}); },[msgs]);
-  useEffect(()=>{ if(pendingPrompt){ setInput(pendingPrompt); onPromptConsumed && onPromptConsumed(); } },[pendingPrompt]);
+
   const sys = () => {
     let p = `You are an expert LitRPG writing assistant for "${projName||'Untitled'}".${projDesc?` ${projDesc}`:''} Help with scene drafting, editing, consistency checking, system screen writing, character voice, plot structure. Be specific and consistent with the world below.\n`;
     if(world.length){p+='\n=== WORLD BIBLE ===';world.forEach(e=>{p+=`\n[${e.category.toUpperCase()}] ${e.title}: ${e.content}`;});}
@@ -911,63 +943,150 @@ function AIAssistant({projName, projDesc, pd, pendingPrompt, onPromptConsumed, m
     if(foreshadow.some(i=>!i.resolved)){p+='\n\n=== UNRESOLVED FORESHADOWING ===';foreshadow.filter(i=>!i.resolved).forEach(i=>{p+=`\nCh.${i.chapterPlanted}: ${i.detail} → Payoff: ${i.payoff||'TBD'}`;});}
     return p;
   };
+
   const send = async () => {
-    if(!input.trim()||busy) return;
+    if(!input.trim() || busy) return;
     const key = getKey();
-    if (!key) { setMsgs(m=>[...m,{role:'assistant',content:'⚠ No API key set — click the key icon (🔑) in the header to add your Anthropic API key.'}]); return; }
-    const um = {role:'user',content:input.trim()}; const nm = [...msgs,um];
-    setMsgs(nm); setInput(''); setBusy(true);
+    if(!key) {
+      updateMsgs(m => [...m, {role:'assistant', content:'⚠ No API key set — click the 🔑 button in the header to add your Anthropic API key.'}]);
+      return;
+    }
+    const userMsg = {role:'user', content:input.trim()};
+    const outgoing = [...msgsRef.current, userMsg];  // use ref, not state, to avoid stale closure
+    updateMsgs(outgoing);
+    setInput('');
+    setBusy(true);
     try {
-      const r = await fetch('https://api.anthropic.com/v1/messages',{
-        method:'POST',
-        headers:{
-          'Content-Type':'application/json',
+      const r = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
           'x-api-key': key,
-          'anthropic-version':'2023-06-01',
-          'anthropic-dangerous-direct-browser-access':'true'
+          'anthropic-version': '2023-06-01',
+          'anthropic-dangerous-direct-browser-access': 'true'
         },
-        body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,system:sys(),messages:nm})
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: 1500,
+          system: sys(),
+          messages: outgoing  // use the local variable, not state
+        })
       });
-      if (!r.ok) { const e = await r.json().catch(()=>({})); throw new Error(e?.error?.message||`API error ${r.status}`); }
-      const d = await r.json(); const txt = d.content?.find(b=>b.type==='text')?.text||'(No response)';
-      setMsgs(m=>[...m,{role:'assistant',content:txt}]);
-    } catch(e) { setMsgs(m=>[...m,{role:'assistant',content:'Error: '+e.message}]); }
+      if(!r.ok) {
+        const errData = await r.json().catch(() => ({}));
+        throw new Error(errData?.error?.message || `API error ${r.status}`);
+      }
+      const d = await r.json();
+      const txt = d.content?.find(b => b.type === 'text')?.text || '(No response)';
+      updateMsgs(m => [...m, {role:'assistant', content:txt}]);
+    } catch(e) {
+      updateMsgs(m => [...m, {role:'assistant', content:'Error: ' + e.message}]);
+    }
     setBusy(false);
   };
-  const fmt = s => s.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/\*(.+?)\*/g,'<em>$1</em>').replace(/`(.+?)`/g,'<code>$1</code>');
+
+  const fmt = s => s
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g, '<em>$1</em>')
+    .replace(/`(.+?)`/g, '<code>$1</code>');
+
   const renderMsg = t => {
-    const lines=t.split('\n'); const els=[]; let li=null;
-    lines.forEach((l,i)=>{
-      const h3=l.match(/^###\s+(.+)/); const bul=l.match(/^[\*\-]\s+(.+)/); const num=l.match(/^\d+\.\s+(.+)/);
-      if(h3){if(li){els.push(<ul key={`u${i}`} style={{paddingLeft:15,marginBottom:'0.4em'}}>{li}</ul>);li=null;}els.push(<h3 key={i}>{h3[1]}</h3>);}
-      else if(bul||num){if(!li)li=[];li.push(<li key={i} dangerouslySetInnerHTML={{__html:fmt((bul||num)[1])}}/>);}
-      else{if(li){els.push(<ul key={`u${i}`} style={{paddingLeft:15,marginBottom:'0.4em'}}>{li}</ul>);li=null;}if(l.trim())els.push(<p key={i} dangerouslySetInnerHTML={{__html:fmt(l)}}/>);else if(i<lines.length-1)els.push(<p key={i}>&nbsp;</p>);}
+    const lines = t.split('\n'); const els = []; let li = null;
+    lines.forEach((l, i) => {
+      const h3 = l.match(/^###\s+(.+)/);
+      const bul = l.match(/^[\*\-]\s+(.+)/);
+      const num = l.match(/^\d+\.\s+(.+)/);
+      if(h3) {
+        if(li) { els.push(<ul key={`u${i}`} style={{paddingLeft:15,marginBottom:'0.4em'}}>{li}</ul>); li=null; }
+        els.push(<h3 key={i}>{h3[1]}</h3>);
+      } else if(bul || num) {
+        if(!li) li = [];
+        li.push(<li key={i} dangerouslySetInnerHTML={{__html: fmt((bul||num)[1])}}/>);
+      } else {
+        if(li) { els.push(<ul key={`u${i}`} style={{paddingLeft:15,marginBottom:'0.4em'}}>{li}</ul>); li=null; }
+        if(l.trim()) els.push(<p key={i} dangerouslySetInnerHTML={{__html: fmt(l)}}/>);
+        else if(i < lines.length - 1) els.push(<p key={i}>&nbsp;</p>);
+      }
     });
-    if(li)els.push(<ul key="ue" style={{paddingLeft:15,marginBottom:'0.4em'}}>{li}</ul>); return els;
+    if(li) els.push(<ul key="ue" style={{paddingLeft:15,marginBottom:'0.4em'}}>{li}</ul>);
+    return els;
   };
-  const SUGG = ['Draft the opening scene of chapter 1','Write a system notification for a skill unlock','Check for consistency issues in my mechanics','Suggest 5 plot complications for the next arc',"Write dialogue in my protagonist's voice"];
+
+  const SUGG = [
+    'Draft the opening scene of chapter 1',
+    'Write a system notification for a skill unlock',
+    'Check for consistency issues in my mechanics',
+    'Suggest 5 plot complications for the next arc',
+    "Write dialogue in my protagonist's voice"
+  ];
+
   return (
     <div className="chat-wrap">
-      <div className="ctx-bar"><div className={`ctx-dot ${ctxCount>0?'':'off'}`}/><span className="ctx-txt">{ctxCount>0?`Context: ${world.length} lore · ${chars.length} chars · ${outline.length} chapters · ${foreshadow.filter(i=>!i.resolved).length} planted · ${log.length} log entries`:'No context loaded — fill in the other tabs first'}</span><div style={{flex:1}}/>{msgs.length>0&&<button onClick={()=>setMsgs([])} style={{background:'transparent',border:'none',cursor:'pointer',color:'var(--txf)',fontFamily:'JetBrains Mono',fontSize:9,textTransform:'uppercase',letterSpacing:'.07em',padding:'2px 6px',borderRadius:2}} onMouseOver={e=>e.currentTarget.style.color='var(--dg)'} onMouseOut={e=>e.currentTarget.style.color='var(--txf)'}>Clear chat</button>}</div>
+      <div className="ctx-bar">
+        <div className={`ctx-dot ${ctxCount>0?'':'off'}`}/>
+        <span className="ctx-txt">
+          {ctxCount>0
+            ? `Context: ${world.length} lore · ${chars.length} chars · ${outline.length} chapters · ${foreshadow.filter(i=>!i.resolved).length} planted · ${log.length} log entries`
+            : 'No context loaded — fill in the other tabs first'}
+        </span>
+        <div style={{flex:1}}/>
+        {msgs.length > 0 && (
+          <button
+            onClick={() => updateMsgs([])}
+            style={{background:'transparent',border:'none',cursor:'pointer',color:'var(--txf)',fontFamily:'JetBrains Mono',fontSize:9,textTransform:'uppercase',letterSpacing:'.07em',padding:'2px 6px',borderRadius:2}}
+            onMouseOver={e=>e.currentTarget.style.color='var(--dg)'}
+            onMouseOut={e=>e.currentTarget.style.color='var(--txf)'}
+          >Clear chat</button>
+        )}
+      </div>
       <div className="msgs">
-        {msgs.length===0 && <div style={{margin:'auto',textAlign:'center',padding:'28px 18px'}}>
-          <div style={{fontSize:28,opacity:.2,marginBottom:10}}>✦</div>
-          <div style={{fontFamily:"'IM Fell English',serif",fontSize:18,color:'var(--txd)',marginBottom:5}}>Your writing assistant</div>
-          <div style={{fontSize:13,color:'var(--txf)',maxWidth:300,margin:'0 auto 20px'}}>Full project context loaded — draft scenes, check consistency, brainstorm arcs...</div>
-          <div style={{display:'flex',flexWrap:'wrap',gap:6,justifyContent:'center'}}>{SUGG.map((s,i)=><button key={i} onClick={()=>setInput(s)} style={{background:'var(--card)',border:'1px solid var(--b)',color:'var(--txd)',fontFamily:"'Crimson Pro',serif",fontSize:13,padding:'5px 11px',borderRadius:4,cursor:'pointer'}}>{s}</button>)}</div>
-        </div>}
-        {msgs.map((m,i)=><div key={i} className={`msg ${m.role==='user'?'u':'a'}`}><div className="bubble">{m.role==='user'?<p>{m.content}</p>:renderMsg(m.content)}</div></div>)}
-        {busy && <div className="msg a"><div className="bubble"><div className="dots"><div className="dot"/><div className="dot"/><div className="dot"/></div></div></div>}
+        {msgs.length === 0 && (
+          <div style={{margin:'auto',textAlign:'center',padding:'28px 18px'}}>
+            <div style={{fontSize:28,opacity:.2,marginBottom:10}}>✦</div>
+            <div style={{fontFamily:"'IM Fell English',serif",fontSize:18,color:'var(--txd)',marginBottom:5}}>Your writing assistant</div>
+            <div style={{fontSize:13,color:'var(--txf)',maxWidth:300,margin:'0 auto 20px'}}>
+              Full project context loaded — draft scenes, check consistency, brainstorm arcs...
+            </div>
+            <div style={{display:'flex',flexWrap:'wrap',gap:6,justifyContent:'center'}}>
+              {SUGG.map((s,i) => (
+                <button key={i} onClick={() => setInput(s)}
+                  style={{background:'var(--card)',border:'1px solid var(--b)',color:'var(--txd)',fontFamily:"'Crimson Pro',serif",fontSize:13,padding:'5px 11px',borderRadius:4,cursor:'pointer'}}>
+                  {s}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+        {msgs.map((m,i) => (
+          <div key={i} className={`msg ${m.role==='user'?'u':'a'}`}>
+            <div className="bubble">
+              {m.role==='user' ? <p>{m.content}</p> : renderMsg(m.content)}
+            </div>
+          </div>
+        ))}
+        {busy && (
+          <div className="msg a">
+            <div className="bubble">
+              <div className="dots"><div className="dot"/><div className="dot"/><div className="dot"/></div>
+            </div>
+          </div>
+        )}
         <div ref={bottomRef}/>
       </div>
       <div className="chat-bar">
-        <textarea className="chat-in" value={input} onChange={e=>setInput(e.target.value)} onKeyDown={e=>e.key==='Enter'&&!e.shiftKey&&(e.preventDefault(),send())} placeholder="Draft a scene, check consistency, generate a system screen... (Enter to send)" rows={1}/>
-        <button className="send" onClick={send} disabled={busy||!input.trim()}>↑</button>
+        <textarea
+          className="chat-in"
+          value={input}
+          onChange={e => setInput(e.target.value)}
+          onKeyDown={e => e.key==='Enter' && !e.shiftKey && (e.preventDefault(), send())}
+          placeholder="Draft a scene, check consistency, generate a system screen... (Enter to send, Shift+Enter for new line)"
+          rows={1}
+        />
+        <button className="send" onClick={send} disabled={busy || !input.trim()}>↑</button>
       </div>
     </div>
   );
 }
-
 /* ── CHAPTER EDITOR ── */
 function ChapterEditor({pd, projId, onUpdate, onSendToAI, setToast}) {
   const outline = pd.outline || [];
@@ -1609,15 +1728,11 @@ function App() {
   const [keyInput, setKeyInput] = useState('');
   const [hasKey, setHasKey] = useState(false);
   const [aiDraft, setAiDraft] = useState(null);
-  const [aiMsgs, setAiMsgs] = useState({});   // keyed by project id
+  const [aiMsgs, setAiMsgs] = useState({});   // keyed by project id — persists across tab switches
 
   const onSendToAI = text => { setAiDraft(text); setTab('ai'); };
-  const curMsgs = aiMsgs[app?.cur] || [];
-  const setCurMsgs = updater => setAiMsgs(prev => {
-    const cur = prev[app?.cur] || [];
-    const next = typeof updater === 'function' ? updater(cur) : updater;
-    return {...prev, [app?.cur]: next};
-  });
+  const savedMsgs = aiMsgs[app?.cur] || [];
+  const onSaveMsgs = (projId, msgs) => setAiMsgs(prev => ({...prev, [projId]: msgs}));
 
   useEffect(() => {
     const d = loadStore(); setApp(d); setLoading(false);
@@ -1680,7 +1795,7 @@ function App() {
                 {tab==='words'       && <WordCountTracker   pd={curPd} onUpdate={updPd}/>}
                 {tab==='check'       && <ConsistencyChecker pd={curPd} projName={curProj.name}/>}
                 {tab==='export'      && <SeriesBibleExport  pd={curPd} projName={curProj.name} projDesc={curProj.description} projId={curProj.id} app={app} onRestoreApp={onRestoreApp} setToast={setToast}/>}
-                {tab==='ai'          && <AIAssistant        projName={curProj.name} projDesc={curProj.description} pd={curPd} pendingPrompt={aiDraft} onPromptConsumed={()=>setAiDraft(null)} msgs={curMsgs} setMsgs={setCurMsgs}/>}
+                {tab==='ai'          && <AIAssistant        projName={curProj.name} projDesc={curProj.description} pd={curPd} projId={curProj.id} pendingPrompt={aiDraft} onPromptConsumed={()=>setAiDraft(null)} savedMsgs={savedMsgs} onSaveMsgs={onSaveMsgs}/>}
               </>}
         </div>
       </div>
