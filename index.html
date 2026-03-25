@@ -157,6 +157,18 @@ hr.div{border:none;border-top:1px solid var(--b);margin:12px 0;}
 .scard{background:var(--card);border:1px solid var(--b);border-radius:5px;padding:10px 13px;margin-bottom:6px;cursor:pointer;transition:border-color .12s;}
 .scard:hover{border-color:var(--bl);}.scard.on{border-color:var(--acd);background:var(--acg);}
 .scard-name{font-size:15px;color:var(--txb);}.scard-sub{font-size:10px;font-family:'JetBrains Mono';color:var(--txd);text-transform:uppercase;margin-top:2px;letter-spacing:.05em;}
+/* prompts */
+.pcat-hdr{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--tl);text-transform:uppercase;letter-spacing:.12em;padding:4px 0 8px;margin-top:18px;border-bottom:1px solid var(--b);margin-bottom:10px;}
+.pcat-hdr:first-child{margin-top:0;}
+.pcard{background:var(--card);border:1px solid var(--b);border-radius:4px;padding:10px 13px;margin-bottom:5px;cursor:pointer;transition:all .13s;display:flex;align-items:flex-start;gap:10px;}
+.pcard:hover{border-color:var(--acd);background:var(--acg);}
+.pcard-text{font-size:14px;color:var(--tx);line-height:1.6;flex:1;}
+.pcard-ico{font-size:13px;flex-shrink:0;padding-top:1px;opacity:.6;}
+.qbtn{font-family:'JetBrains Mono',monospace;font-size:10px;padding:3px 9px;background:var(--tld);border:1px solid rgba(74,138,140,.35);color:var(--tl);border-radius:3px;cursor:pointer;white-space:nowrap;transition:all .12s;text-transform:uppercase;letter-spacing:.06em;}
+.qbtn:hover{background:rgba(74,138,140,.28);border-color:var(--tl);}
+.qbtns{display:flex;flex-wrap:wrap;gap:5px;margin-top:12px;padding-top:12px;border-top:1px solid var(--b);}
+.rand-out{background:var(--card);border:1px solid var(--acd);border-radius:6px;padding:16px 18px;margin-top:14px;max-width:580px;}
+.rand-prompt{font-family:'IM Fell English',serif;font-size:19px;color:var(--txb);line-height:1.5;margin-bottom:10px;}
 </style>
 </head>
 <body>
@@ -165,7 +177,10 @@ hr.div{border:none;border-top:1px solid var(--b);margin:12px 0;}
 const { useState, useEffect, useRef } = React;
 
 const SK = 'scriptorium_v2';
+const AK = 'scrip_apikey';
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,5);
+const getKey = () => localStorage.getItem(AK)||'';
+const setKey = k => localStorage.setItem(AK, k.trim());
 const defPd = () => ({world:[],characters:[],outline:[],screens:[],continuityFields:[],continuityLog:[],ideas:[],foreshadowing:[]});
 const mergePd = pd => ({...defPd(),...pd});
 
@@ -181,7 +196,7 @@ function Toast({msg, onDone}) {
 }
 
 /* ── WORLD BIBLE ── */
-function WorldBible({pd, onUpdate}) {
+function WorldBible({pd, onUpdate, onSendToAI}) {
   const entries = pd.world || [];
   const [sel, setSel] = useState(null);
   const [modal, setModal] = useState(false);
@@ -212,6 +227,11 @@ function WorldBible({pd, onUpdate}) {
               <button className="btn btn-d btn-sm" onClick={()=>del(selE.id)}>Delete</button>
             </div>
             <hr className="div"/><div className="det-body">{selE.content}</div>
+            <div className="qbtns">
+              <button className="qbtn" onClick={()=>onSendToAI(`Write a scene that demonstrates the "${selE.title}" mechanic in action — show it through character experience, not exposition.`)}>Show in scene</button>
+              <button className="qbtn" onClick={()=>onSendToAI(`What are 3 ways the "${selE.title}" element could create unexpected conflict or complications for the protagonist?`)}>Complications</button>
+              <button className="qbtn" onClick={()=>onSendToAI(`Check my "${selE.title}" entry for internal consistency issues or gaps that might cause problems later in the story.`)}>Consistency check</button>
+            </div>
           </>)}
         </div>
       </div>
@@ -227,7 +247,7 @@ function WorldBible({pd, onUpdate}) {
 }
 
 /* ── CHARACTERS ── */
-function Characters({pd, onUpdate}) {
+function Characters({pd, onUpdate, onSendToAI}) {
   const chars = pd.characters || [];
   const [sel, setSel] = useState(null);
   const [modal, setModal] = useState(false);
@@ -266,6 +286,13 @@ function Characters({pd, onUpdate}) {
             {selC.voice && <div style={{marginBottom:11}}><div className="fl">Voice & Tone</div><div className="det-body" style={{fontStyle:'italic'}}>{selC.voice}</div></div>}
             {selC.background && <div style={{marginBottom:11}}><div className="fl">Background</div><div className="det-body">{selC.background}</div></div>}
             {selC.notes && <div><div className="fl">Notes</div><div className="det-body" style={{color:'var(--txd)'}}>{selC.notes}</div></div>}
+            <div className="qbtns">
+              <button className="qbtn" onClick={()=>onSendToAI(`Write a scene from ${selC.title}'s point of view. Use their established voice and traits. Drop us in mid-action.`)}>POV scene</button>
+              <button className="qbtn" onClick={()=>onSendToAI(`Write a revealing piece of dialogue for ${selC.title}. Their voice should be distinct enough to identify without a dialogue tag.`)}>Dialogue sample</button>
+              <button className="qbtn" onClick={()=>onSendToAI(`Write a backstory scene for ${selC.title} — a specific memory that explains a present behaviour or belief.`)}>Backstory scene</button>
+              <button className="qbtn" onClick={()=>onSendToAI(`Write ${selC.title}'s internal monologue during a moment of high pressure. What do they tell themselves? What are they really afraid of?`)}>Inner monologue</button>
+              <button className="qbtn" onClick={()=>onSendToAI(`Write a scene that reveals ${selC.title}'s core flaw without stating it directly — only visible in what they avoid or how they deflect.`)}>Reveal flaw</button>
+            </div>
           </>)}
         </div>
       </div>
@@ -292,7 +319,7 @@ function Characters({pd, onUpdate}) {
 }
 
 /* ── OUTLINE ── */
-function Outline({pd, onUpdate}) {
+function Outline({pd, onUpdate, onSendToAI}) {
   const chs = pd.outline || [];
   const [sel, setSel] = useState(null);
   const [modal, setModal] = useState(false);
@@ -326,6 +353,12 @@ function Outline({pd, onUpdate}) {
             </div>
             {selCh.beats.length>0 && <><div className="fl" style={{marginBottom:7}}>Beats</div><div style={{marginBottom:12}}>{selCh.beats.map((b,i)=><div key={i} className="beat">{b}</div>)}</div></>}
             {selCh.notes && <div><div className="fl">Notes</div><div className="det-body" style={{fontStyle:'italic'}}>{selCh.notes}</div></div>}
+            <div className="qbtns">
+              <button className="qbtn" onClick={()=>onSendToAI(`Draft an opening scene for Chapter ${selCh.number||'?'}: "${selCh.title}". Beats: ${selCh.beats.join('; ')}. Start with immediate tension — no preamble.`)}>Draft opening</button>
+              <button className="qbtn" onClick={()=>onSendToAI(`Suggest 3 complications or twists that could make Chapter ${selCh.number||'?'}: "${selCh.title}" more surprising while staying true to the established beats.`)}>Complications</button>
+              <button className="qbtn" onClick={()=>onSendToAI(`Write the closing scene of Chapter ${selCh.number||'?'}: "${selCh.title}". End on a hook or shift that makes the next chapter inevitable.`)}>Draft ending</button>
+              <button className="qbtn" onClick={()=>onSendToAI(`Analyse the pacing of Chapter ${selCh.number||'?'}: "${selCh.title}" based on these beats: ${selCh.beats.join('; ')}. What's the tension curve? Where might it sag?`)}>Pacing check</button>
+            </div>
           </>)}
         </div>
       </div>
@@ -571,12 +604,124 @@ function ForeshadowTracker({pd, onUpdate}) {
   );
 }
 
+/* ── PROMPT LIBRARY ── */
+const PROMPT_LIBRARY = {
+  'Scene Drafting': [
+    { ico:'✍', text:'Write the opening paragraph of Chapter 1. Start in the middle of action — no preamble, no weather, no waking up.' },
+    { ico:'⚔', text:'Write a fast-paced combat scene. Short sentences. The protagonist is outnumbered but finds an unexpected angle.' },
+    { ico:'💬', text:'Write a tense dialogue scene between two characters who distrust each other but need something from each other.' },
+    { ico:'🌙', text:'Write a quiet downtime scene. The protagonist alone, processing what just happened. Show their inner voice without exposition.' },
+    { ico:'👁', text:'Write a scene where the protagonist first realises the true scale of the world they\'ve been thrown into.' },
+    { ico:'🔥', text:'Write the climax of the current arc. Raise the stakes past what the protagonist thinks they can handle, then push through.' },
+    { ico:'🌅', text:'Write a scene transition — time has passed. Show what changed without telling us directly.' },
+  ],
+  'LitRPG Specific': [
+    { ico:'⚡', text:'Write the moment the system notification appears for a new skill unlock. Make it feel significant — show the protagonist\'s physical and emotional reaction.' },
+    { ico:'▲', text:'Write a level-up scene. Don\'t just describe the stat changes — show what it feels like in the body, and what it costs.' },
+    { ico:'◈', text:'Write a stat screen reveal scene where the protagonist discovers a hidden or unexpected stat they didn\'t know they had.' },
+    { ico:'⚠', text:'Write a scene where the system gives a warning or penalty notification. The protagonist has broken a rule they didn\'t know existed.' },
+    { ico:'🔮', text:'Write a grind montage compressed into a single tight scene. Repetition, small gains, the psychological weight of it.' },
+    { ico:'✦', text:'Write the scene where the protagonist\'s class or title changes unexpectedly — and it\'s not what they hoped for.' },
+    { ico:'💀', text:'Write a near-death scene where the system is the only thing keeping the protagonist alive — and it\'s making choices they don\'t fully understand.' },
+  ],
+  'Character Work': [
+    { ico:'🎭', text:'Write a scene that reveals the protagonist\'s core wound without stating it directly. It should only be visible in what they avoid.' },
+    { ico:'🗣', text:'Write a piece of dialogue for the selected character. Their voice should be so distinct you could identify them without a dialogue tag.' },
+    { ico:'🔗', text:'Write a scene that deepens the relationship between two characters. They don\'t have to like each other — they just have to need each other.' },
+    { ico:'🪞', text:'Write a scene where the protagonist sees themselves clearly for the first time — and doesn\'t like what they see.' },
+    { ico:'🧠', text:'Write the protagonist\'s internal monologue during a moment of crisis. What they tell themselves. What they\'re really afraid of.' },
+    { ico:'📜', text:'Write a backstory scene — a memory that surfaces unbidden and explains a present behaviour.' },
+    { ico:'⚡', text:'Write the moment a supporting character\'s loyalty is tested. Which way do they break?' },
+  ],
+  'Plot & Structure': [
+    { ico:'🌀', text:'Suggest 5 complications that could derail the current arc. Each should feel earned by what\'s already established, not random.' },
+    { ico:'🔄', text:'Identify the midpoint of the current arc and write a reversal scene — something the protagonist believed turns out to be wrong.' },
+    { ico:'🎯', text:'Write a scene that plants a Chekhov\'s gun — something the reader will notice on a reread but not recognise the first time.' },
+    { ico:'💥', text:'What\'s the worst thing that could happen to the protagonist right now that would still be survivable? Write that scene.' },
+    { ico:'🧩', text:'Outline the next 3 chapters as a cause-and-effect chain. Each chapter\'s ending must be the cause of the next chapter\'s conflict.' },
+    { ico:'🌊', text:'Write a scene that shifts the genre register — a moment of unexpected quiet in an action arc, or sudden threat in a downtime section.' },
+    { ico:'🔮', text:'Write the final scene of the current book. Work backwards from this to identify what the penultimate chapter needs to set up.' },
+  ],
+};
+
+const RANDOM_PROMPTS = [
+  'Your protagonist finds an object that belonged to someone they\'ve never met — but recognise completely.',
+  'A system notification appears at the worst possible moment. Write the scene.',
+  'Two characters who have never spoken alone are forced into a confined space for an hour.',
+  'Write the scene where the antagonist is almost right.',
+  'The protagonist\'s greatest strength becomes a liability. How?',
+  'Something the protagonist dismissed as minor at the start of the story returns with weight.',
+  'Write the scene just before the one you\'ve been building toward. Make us dread what\'s coming.',
+  'A character reveals something true about the protagonist that the protagonist can\'t refute.',
+  'The world the protagonist thought they understood has one more layer. Reveal it.',
+  'Write a scene in which nothing happens — but everything changes.',
+  'The system gives the protagonist exactly what they asked for. It\'s not what they wanted.',
+  'Write the scene from the antagonist\'s point of view. Make them sympathetic.',
+  'A character who was wrong earlier in the story turns out to have been right. How does the protagonist reckon with this?',
+  'The protagonist has to ask for help. They\'ve never had to before.',
+  'Write the morning after the worst night. What does ordinary feel like now?',
+];
+
+function PromptLibrary({ onSendToAI }) {
+  const [randPrompt, setRandPrompt] = useState(null);
+  const [lastIdx, setLastIdx] = useState(-1);
+
+  const randomise = () => {
+    let idx; do { idx = Math.floor(Math.random() * RANDOM_PROMPTS.length); } while (idx === lastIdx && RANDOM_PROMPTS.length > 1);
+    setRandPrompt(RANDOM_PROMPTS[idx]); setLastIdx(idx);
+  };
+
+  return (
+    <div style={{display:'flex',flexDirection:'column',height:'100%'}}>
+      <div className="sec-hdr"><h1 className="sec-title">Prompt <em>Library</em></h1>
+        <button className="btn btn-t btn-sm" onClick={randomise}>🎲 Random Prompt</button>
+      </div>
+      {randPrompt && (
+        <div style={{padding:'10px 20px',flexShrink:0}}>
+          <div className="rand-out">
+            <div className="rand-prompt">"{randPrompt}"</div>
+            <div style={{display:'flex',gap:7}}>
+              <button className="btn btn-a btn-sm" onClick={()=>onSendToAI(randPrompt)}>Send to AI →</button>
+              <button className="btn btn-g btn-sm" onClick={randomise}>Another</button>
+            </div>
+          </div>
+        </div>
+      )}
+      <div style={{flex:1,overflowY:'auto',padding:'4px 20px 20px'}}>
+        {Object.entries(PROMPT_LIBRARY).map(([cat, prompts]) => (
+          <div key={cat}>
+            <div className="pcat-hdr">{cat}</div>
+            {prompts.map((p, i) => (
+              <div key={i} className="pcard" onClick={() => onSendToAI(p.text)}>
+                <span className="pcard-ico">{p.ico}</span>
+                <span className="pcard-text">{p.text}</span>
+              </div>
+            ))}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 /* ── NAME GENERATOR ── */
 const NAMETYPES = ['Character Name','Place Name','Skill Name','Chapter Title','Faction Name','Item Name','Technique Name'];
 const TONES = ['Grimdark','Epic Fantasy','Cosmic Horror','Clinical/Technical','Mythic','Earthy/Grounded','Weird West'];
 const ORIGINS = ['None','Nordic','Japanese','Indigenous/Apache','Latin','Arabic','Slavic','Celtic','Hebrew','Greek','Original'];
 async function callClaude(system, prompt) {
-  const r = await fetch('https://api.anthropic.com/v1/messages', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,system,messages:[{role:'user',content:prompt}]})});
+  const key = getKey();
+  if (!key) throw new Error('NO_KEY');
+  const r = await fetch('https://api.anthropic.com/v1/messages', {
+    method:'POST',
+    headers:{
+      'Content-Type':'application/json',
+      'x-api-key': key,
+      'anthropic-version':'2023-06-01',
+      'anthropic-dangerous-direct-browser-access':'true'
+    },
+    body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,system,messages:[{role:'user',content:prompt}]})
+  });
+  if (!r.ok) { const e = await r.json().catch(()=>({})); throw new Error(e?.error?.message||`API error ${r.status}`); }
   const d = await r.json(); return d.content?.find(b=>b.type==='text')?.text||'';
 }
 function NameGenerator({pd, projName}) {
@@ -593,7 +738,7 @@ function NameGenerator({pd, projName}) {
       const txt = await callClaude(sys, prompt);
       const names = txt.split('\n').map(l=>l.trim().replace(/^[\-\*\d\.]+\s*/,'')).filter(l=>l.length>0&&l.length<60).slice(0,count);
       setResults(names);
-    } catch(e) { setResults(['Error generating — try again']); }
+    } catch(e) { setResults([e.message==='NO_KEY'?'⚠ No API key set — click the key icon in the header to add yours':'Error: '+e.message]); }
     setBusy(false);
   };
   const copy = (n,i) => { navigator.clipboard.writeText(n); setCopied(i); setTimeout(()=>setCopied(null),1500); };
@@ -630,8 +775,10 @@ function SceneScaffold({pd, projName, projDesc}) {
     try {
       const txt = await callClaude(sys, prompt);
       const parsed = txt.split('\n').map(l=>l.trim()).filter(l=>/^\d+\./.test(l)).map(l=>l.replace(/^\d+\.\s*/,''));
-      setBeats(parsed.length>0 ? parsed : txt.split('\n').filter(l=>l.trim()).slice(0,8));
-    } catch(e) { setBeats(['Error generating — please try again']); }
+      const fallback = txt.split('\n').filter(l=>l.trim()).slice(0,8);
+      const final = parsed.length>0 ? parsed : fallback.length>0 ? fallback : ['No beats returned — try rephrasing the scene context and generating again.'];
+      setBeats(final);
+    } catch(e) { setBeats([e.message==='NO_KEY'?'⚠ No API key set — click the key icon in the header to add yours':'Error: '+e.message]); }
     setBusy(false);
   };
   const copyAll = () => { if(!beats) return; navigator.clipboard.writeText(beats.map((b,i)=>`${i+1}. ${b}`).join('\n')); };
@@ -661,13 +808,14 @@ function SceneScaffold({pd, projName, projDesc}) {
 }
 
 /* ── AI ASSISTANT ── */
-function AIAssistant({projName, projDesc, pd}) {
-  const [msgs, setMsgs] = useState([]); const [input, setInput] = useState(''); const [busy, setBusy] = useState(false);
+function AIAssistant({projName, projDesc, pd, pendingPrompt, onPromptConsumed, msgs, setMsgs}) {
+  const [input, setInput] = useState(''); const [busy, setBusy] = useState(false);
   const bottomRef = useRef(null);
   const world=pd.world||[]; const chars=pd.characters||[]; const outline=pd.outline||[];
   const foreshadow=pd.foreshadowing||[]; const log=pd.continuityLog||[]; const fields=pd.continuityFields||[];
   const ctxCount = world.length+chars.length+outline.length;
   useEffect(()=>{ bottomRef.current?.scrollIntoView({behavior:'smooth'}); },[msgs]);
+  useEffect(()=>{ if(pendingPrompt){ setInput(pendingPrompt); onPromptConsumed && onPromptConsumed(); } },[pendingPrompt]);
   const sys = () => {
     let p = `You are an expert LitRPG writing assistant for "${projName||'Untitled'}".${projDesc?` ${projDesc}`:''} Help with scene drafting, editing, consistency checking, system screen writing, character voice, plot structure. Be specific and consistent with the world below.\n`;
     if(world.length){p+='\n=== WORLD BIBLE ===';world.forEach(e=>{p+=`\n[${e.category.toUpperCase()}] ${e.title}: ${e.content}`;});}
@@ -679,15 +827,28 @@ function AIAssistant({projName, projDesc, pd}) {
   };
   const send = async () => {
     if(!input.trim()||busy) return;
+    const key = getKey();
+    if (!key) { setMsgs(m=>[...m,{role:'assistant',content:'⚠ No API key set — click the key icon (🔑) in the header to add your Anthropic API key.'}]); return; }
     const um = {role:'user',content:input.trim()}; const nm = [...msgs,um];
     setMsgs(nm); setInput(''); setBusy(true);
     try {
-      const r = await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,system:sys(),messages:nm})});
+      const r = await fetch('https://api.anthropic.com/v1/messages',{
+        method:'POST',
+        headers:{
+          'Content-Type':'application/json',
+          'x-api-key': key,
+          'anthropic-version':'2023-06-01',
+          'anthropic-dangerous-direct-browser-access':'true'
+        },
+        body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,system:sys(),messages:nm})
+      });
+      if (!r.ok) { const e = await r.json().catch(()=>({})); throw new Error(e?.error?.message||`API error ${r.status}`); }
       const d = await r.json(); const txt = d.content?.find(b=>b.type==='text')?.text||'(No response)';
       setMsgs(m=>[...m,{role:'assistant',content:txt}]);
-    } catch { setMsgs(m=>[...m,{role:'assistant',content:'Connection error — please try again.'}]); }
+    } catch(e) { setMsgs(m=>[...m,{role:'assistant',content:'Error: '+e.message}]); }
     setBusy(false);
   };
+  const fmt = s => s.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/\*(.+?)\*/g,'<em>$1</em>').replace(/`(.+?)`/g,'<code>$1</code>');
   const renderMsg = t => {
     const lines=t.split('\n'); const els=[]; let li=null;
     lines.forEach((l,i)=>{
@@ -698,11 +859,10 @@ function AIAssistant({projName, projDesc, pd}) {
     });
     if(li)els.push(<ul key="ue" style={{paddingLeft:15,marginBottom:'0.4em'}}>{li}</ul>); return els;
   };
-  const fmt = s => s.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/\*(.+?)\*/g,'<em>$1</em>').replace(/`(.+?)`/g,'<code>$1</code>');
   const SUGG = ['Draft the opening scene of chapter 1','Write a system notification for a skill unlock','Check for consistency issues in my mechanics','Suggest 5 plot complications for the next arc',"Write dialogue in my protagonist's voice"];
   return (
     <div className="chat-wrap">
-      <div className="ctx-bar"><div className={`ctx-dot ${ctxCount>0?'':'off'}`}/><span className="ctx-txt">{ctxCount>0?`Context: ${world.length} lore · ${chars.length} chars · ${outline.length} chapters · ${foreshadow.filter(i=>!i.resolved).length} planted · ${log.length} log entries`:'No context loaded — fill in the other tabs first'}</span></div>
+      <div className="ctx-bar"><div className={`ctx-dot ${ctxCount>0?'':'off'}`}/><span className="ctx-txt">{ctxCount>0?`Context: ${world.length} lore · ${chars.length} chars · ${outline.length} chapters · ${foreshadow.filter(i=>!i.resolved).length} planted · ${log.length} log entries`:'No context loaded — fill in the other tabs first'}</span><div style={{flex:1}}/>{msgs.length>0&&<button onClick={()=>setMsgs([])} style={{background:'transparent',border:'none',cursor:'pointer',color:'var(--txf)',fontFamily:'JetBrains Mono',fontSize:9,textTransform:'uppercase',letterSpacing:'.07em',padding:'2px 6px',borderRadius:2}} onMouseOver={e=>e.currentTarget.style.color='var(--dg)'} onMouseOut={e=>e.currentTarget.style.color='var(--txf)'}>Clear chat</button>}</div>
       <div className="msgs">
         {msgs.length===0 && <div style={{margin:'auto',textAlign:'center',padding:'28px 18px'}}>
           <div style={{fontSize:28,opacity:.2,marginBottom:10}}>✦</div>
@@ -732,7 +892,8 @@ const TABS = [
   {id:'ideas',ico:'💡',lbl:'IDEAS',div:true},
   {id:'screens',ico:'🖥',lbl:'SCRN',div:false},
   {id:'names',ico:'🎲',lbl:'NAMES',div:false},
-  {id:'scaffold',ico:'🏗',lbl:'SCAF',div:true},
+  {id:'scaffold',ico:'🏗',lbl:'SCAF',div:false},
+  {id:'prompts',ico:'📝',lbl:'PROMPTS',div:true},
   {id:'ai',ico:'✦',lbl:'AI',div:false},
 ];
 
@@ -743,8 +904,23 @@ function App() {
   const [npModal, setNpModal] = useState(false);
   const [npForm, setNpForm] = useState({name:'',description:''});
   const [toast, setToast] = useState(null);
+  const [keyModal, setKeyModal] = useState(false);
+  const [keyInput, setKeyInput] = useState('');
+  const [hasKey, setHasKey] = useState(false);
+  const [aiDraft, setAiDraft] = useState(null);
+  const [aiMsgs, setAiMsgs] = useState({});   // keyed by project id
 
-  useEffect(() => { const d = loadStore(); setApp(d); setLoading(false); }, []);
+  const onSendToAI = text => { setAiDraft(text); setTab('ai'); };
+  const curMsgs = aiMsgs[app?.cur] || [];
+  const setCurMsgs = msgs => setAiMsgs(prev => ({...prev, [app?.cur]: msgs}));
+
+  useEffect(() => {
+    const d = loadStore(); setApp(d); setLoading(false);
+    setHasKey(!!getKey());
+  }, []);
+
+  const saveKey = () => { setKey(keyInput); setHasKey(!!keyInput.trim()); setKeyModal(false); setToast('API key saved!'); };
+  const clearKey = () => { setKey(''); setHasKey(false); setKeyInput(''); setToast('API key cleared'); };
 
   const update = d => { setApp(d); saveStore(d); };
   const curProj = app?.projects.find(p=>p.id===app.cur);
@@ -773,6 +949,8 @@ function App() {
           : <span style={{fontSize:13,color:'var(--txf)',fontStyle:'italic'}}>No projects</span>}
         <button className="btn btn-a btn-sm" onClick={()=>setNpModal(true)}>+ Project</button>
         {curProj && <button className="btn btn-d btn-sm" onClick={()=>{if(window.confirm(`Delete "${curProj.name}"?`))delProj(curProj.id);}}>✕</button>}
+        <div className="spacer"/>
+        <button className="btn btn-sm" onClick={()=>{setKeyInput(getKey());setKeyModal(true);}} style={{background:hasKey?'rgba(74,124,90,0.15)':'var(--dgd)',borderColor:hasKey?'rgba(74,124,90,0.5)':'rgba(155,64,64,0.38)',color:hasKey?'#5aaf6a':'var(--dg)'}} title="API Key">{hasKey?'🔑 Key Set':'🔑 No Key'}</button>
       </div>
       <div className="main">
         <div className="sidebar">
@@ -782,16 +960,17 @@ function App() {
           {!curProj
             ? <div className="no-proj"><h2>No Project Selected</h2><p>Create a project to begin. Each has its own lore, characters, outline, and tracking.</p><button className="btn btn-a" onClick={()=>setNpModal(true)}>Create Your First Project</button></div>
             : <>
-                {tab==='world'       && <WorldBible        pd={curPd} onUpdate={updPd}/>}
-                {tab==='characters'  && <Characters        pd={curPd} onUpdate={updPd}/>}
-                {tab==='outline'     && <Outline           pd={curPd} onUpdate={updPd}/>}
+                {tab==='world'       && <WorldBible        pd={curPd} onUpdate={updPd} onSendToAI={onSendToAI}/>}
+                {tab==='characters'  && <Characters        pd={curPd} onUpdate={updPd} onSendToAI={onSendToAI}/>}
+                {tab==='outline'     && <Outline           pd={curPd} onUpdate={updPd} onSendToAI={onSendToAI}/>}
                 {tab==='screens'     && <SystemScreens     pd={curPd} onUpdate={updPd} toast={setToast}/>}
                 {tab==='log'         && <ContinuityLog     pd={curPd} onUpdate={updPd}/>}
                 {tab==='ideas'       && <IdeaCapture       pd={curPd} onUpdate={updPd}/>}
                 {tab==='foreshadow'  && <ForeshadowTracker pd={curPd} onUpdate={updPd}/>}
                 {tab==='names'       && <NameGenerator     pd={curPd} projName={curProj.name}/>}
                 {tab==='scaffold'    && <SceneScaffold     pd={curPd} projName={curProj.name} projDesc={curProj.description}/>}
-                {tab==='ai'          && <AIAssistant       projName={curProj.name} projDesc={curProj.description} pd={curPd}/>}
+                {tab==='prompts'     && <PromptLibrary     onSendToAI={onSendToAI}/>}
+                {tab==='ai'          && <AIAssistant       projName={curProj.name} projDesc={curProj.description} pd={curPd} pendingPrompt={aiDraft} onPromptConsumed={()=>setAiDraft(null)} msgs={curMsgs} setMsgs={setCurMsgs}/>}
               </>}
         </div>
       </div>
@@ -802,6 +981,21 @@ function App() {
         <div className="m-foot"><button className="btn btn-g" onClick={()=>setNpModal(false)}>Cancel</button><button className="btn btn-a" onClick={createProj}>Create</button></div>
       </div></div>}
       {toast && <Toast msg={toast} onDone={()=>setToast(null)}/>}
+      {keyModal && <div className="overlay" onClick={e=>e.target.className==='overlay'&&setKeyModal(false)}><div className="modal">
+        <div className="m-title">Anthropic API Key</div>
+        <p style={{fontSize:14,color:'var(--txd)',marginBottom:16,lineHeight:1.7}}>Required for the AI assistant, name generator, and scene scaffold. Your key is stored only in your browser's local storage — never sent anywhere except directly to Anthropic.</p>
+        <div className="fg">
+          <label className="fl">API Key</label>
+          <input className="fi" type="password" value={keyInput} onChange={e=>setKeyInput(e.target.value)} placeholder="sk-ant-..." autoFocus onKeyDown={e=>e.key==='Enter'&&saveKey()}/>
+        </div>
+        <p style={{fontSize:12,color:'var(--txf)',marginBottom:4}}>Get your key at <span style={{color:'var(--tl)'}}>console.anthropic.com</span> → API Keys.</p>
+        <div className="m-foot">
+          {hasKey && <button className="btn btn-d btn-sm" onClick={clearKey}>Clear Key</button>}
+          <div className="spacer"/>
+          <button className="btn btn-g" onClick={()=>setKeyModal(false)}>Cancel</button>
+          <button className="btn btn-a" onClick={saveKey}>Save Key</button>
+        </div>
+      </div></div>}
     </div>
   );
 }
