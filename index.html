@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Scriptorium — LitRPG Writing Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,400&family=JetBrains+Mono:wght@300;400&display=swap" rel="stylesheet"/>
+<script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#0d0c0a;--sb:#100f0d;--card:#181613;--card2:#1e1c18;
+  --b:#272320;--bl:#322e28;
+  --ac:#c4922a;--acg:rgba(196,146,42,0.12);--acd:rgba(196,146,42,0.38);
+  --tl:#4a8a8c;--tld:rgba(74,138,140,0.2);
+  --tx:#cec3b0;--txd:#7a6e60;--txb:#ede5d4;--txf:#3e3830;
+  --dg:#9b4040;--dgd:rgba(155,64,64,0.12);--ok:#4a7c5a;
+}
+html,body,#root{height:100%;background:var(--bg);overflow:hidden;}
+body{font-family:'Crimson Pro',Georgia,serif;color:var(--tx);font-size:16px;line-height:1.55;}
+::-webkit-scrollbar{width:4px;height:4px;}::-webkit-scrollbar-track{background:transparent;}::-webkit-scrollbar-thumb{background:var(--b);border-radius:2px;}
+.app{display:flex;flex-direction:column;height:100vh;}
+.hdr{display:flex;align-items:center;gap:12px;padding:9px 16px;background:var(--sb);border-bottom:1px solid var(--b);flex-shrink:0;}
+.hdr-logo{font-family:'IM Fell English',serif;font-size:19px;color:var(--ac);letter-spacing:.04em;flex-shrink:0;}
+.hdr-logo span{font-size:11px;color:var(--txd);font-style:italic;margin-left:7px;}
+.hdr-sep{width:1px;height:20px;background:var(--b);flex-shrink:0;}
+.spacer{flex:1;}
+.btn{font-family:'Crimson Pro',serif;font-size:13px;letter-spacing:.06em;padding:5px 12px;border-radius:3px;border:1px solid;cursor:pointer;transition:all .14s;text-transform:uppercase;white-space:nowrap;}
+.btn-a{background:var(--acg);border-color:var(--acd);color:var(--ac);}.btn-a:hover{background:rgba(196,146,42,.22);border-color:var(--ac);}
+.btn-g{background:transparent;border-color:var(--b);color:var(--txd);}.btn-g:hover{border-color:var(--bl);color:var(--tx);}
+.btn-d{background:var(--dgd);border-color:rgba(155,64,64,.38);color:var(--dg);}.btn-d:hover{background:rgba(155,64,64,.22);}
+.btn-sm{padding:3px 9px;font-size:11px;}
+.btn-t{background:var(--tld);border-color:rgba(74,138,140,.38);color:var(--tl);}.btn-t:hover{background:rgba(74,138,140,.28);}
+.proj-sel{background:var(--card);border:1px solid var(--b);color:var(--tx);font-family:'Crimson Pro',serif;font-size:15px;padding:5px 9px;border-radius:3px;outline:none;cursor:pointer;min-width:140px;max-width:210px;}
+.proj-sel:focus{border-color:var(--acd);}.proj-sel option{background:var(--card);}
+.main{display:flex;flex:1;overflow:hidden;}
+.sidebar{width:52px;background:var(--sb);border-right:1px solid var(--b);display:flex;flex-direction:column;padding:8px 0;gap:2px;align-items:center;flex-shrink:0;overflow-y:auto;}
+.nav-btn{width:40px;height:40px;background:transparent;border:none;color:var(--txd);cursor:pointer;border-radius:5px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:15px;transition:all .12s;}
+.nav-btn:hover{background:var(--card2);color:var(--tx);}.nav-btn.on{background:var(--acg);color:var(--ac);}
+.nav-lbl{font-size:7.5px;font-family:'JetBrains Mono',monospace;margin-top:2px;letter-spacing:.06em;text-transform:uppercase;}
+.nav-div{width:28px;height:1px;background:var(--b);margin:4px 0;flex-shrink:0;}
+.content{flex:1;overflow:hidden;display:flex;flex-direction:column;}
+.sec-hdr{padding:16px 20px 0;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.sec-title{font-family:'IM Fell English',serif;font-size:23px;color:var(--txb);}
+.sec-title em{color:var(--ac);font-style:normal;}
+.two-panel{display:flex;flex:1;overflow:hidden;margin-top:11px;}
+.list-pane{width:250px;border-right:1px solid var(--b);overflow-y:auto;padding:8px;flex-shrink:0;}
+.detail-pane{flex:1;overflow-y:auto;padding:16px 20px;}
+.full-pane{flex:1;overflow-y:auto;padding:16px 20px;}
+.li{padding:8px 10px;border-radius:4px;cursor:pointer;border:1px solid transparent;transition:all .12s;margin-bottom:3px;}
+.li:hover{background:var(--card);border-color:var(--b);}.li.on{background:var(--acg);border-color:var(--acd);}
+.li-title{font-size:15px;color:var(--txb);}.li-sub{font-size:11px;color:var(--txd);font-family:'JetBrains Mono',monospace;text-transform:uppercase;margin-top:2px;letter-spacing:.04em;}
+.tag{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:10px;padding:2px 7px;background:var(--card2);border:1px solid var(--b);border-radius:2px;color:var(--txd);text-transform:uppercase;letter-spacing:.07em;margin-right:4px;margin-bottom:3px;}
+.tag.t{background:var(--tld);border-color:var(--tl);color:var(--tl);}.tag.a{background:var(--acg);border-color:var(--acd);color:var(--ac);}
+.det-name{font-family:'IM Fell English',serif;font-size:25px;color:var(--txb);}
+.det-row{display:flex;align-items:flex-start;gap:9px;margin-bottom:12px;}
+.det-body{font-size:15px;color:var(--tx);line-height:1.75;white-space:pre-wrap;}
+hr.div{border:none;border-top:1px solid var(--b);margin:12px 0;}
+.stats-g{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px;}
+.stat-c{background:var(--card2);border:1px solid var(--b);border-radius:4px;padding:7px 9px;}
+.stat-n{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--tl);text-transform:uppercase;letter-spacing:.07em;}
+.stat-v{font-size:19px;font-family:'IM Fell English',serif;color:var(--txb);}
+.beat{font-size:14px;color:var(--txd);padding:3px 0 3px 13px;position:relative;line-height:1.5;}
+.beat::before{content:'◆';position:absolute;left:0;color:var(--acd);font-size:8px;top:6px;}
+.fg{margin-bottom:12px;}.fl{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--txd);text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px;display:block;}
+.fi,.fsel,.fta{width:100%;background:var(--card);border:1px solid var(--b);color:var(--tx);font-family:'Crimson Pro',serif;font-size:15px;padding:6px 10px;border-radius:4px;outline:none;transition:border-color .14s;}
+.fi:focus,.fsel:focus,.fta:focus{border-color:var(--acd);}.fta{resize:vertical;min-height:100px;line-height:1.65;}.fsel option{background:var(--card);}
+.f2{display:grid;grid-template-columns:1fr 1fr;gap:11px;}.f-full{grid-column:1/-1;}
+.i-row{display:flex;gap:6px;align-items:flex-end;}.i-row .fi{flex:1;}
+.beat-row{display:flex;gap:5px;align-items:center;margin-bottom:5px;}
+.beat-fi{flex:1;background:var(--card);border:1px solid var(--b);color:var(--tx);font-family:'Crimson Pro',serif;font-size:14px;padding:5px 9px;border-radius:3px;outline:none;}
+.beat-fi:focus{border-color:var(--acd);}
+.ib{background:transparent;border:none;cursor:pointer;color:var(--txd);font-size:14px;padding:3px 5px;border-radius:3px;line-height:1;}
+.ib:hover{color:var(--tx);background:var(--card2);}.ib.d:hover{color:var(--dg);}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px;}
+.modal{background:#1a1815;border:1px solid var(--bl);border-radius:8px;padding:20px;width:100%;max-width:510px;max-height:88vh;overflow-y:auto;}
+.m-title{font-family:'IM Fell English',serif;font-size:21px;color:var(--txb);margin-bottom:16px;}
+.m-foot{display:flex;justify-content:flex-end;gap:7px;margin-top:16px;padding-top:12px;border-top:1px solid var(--b);}
+.empty{text-align:center;padding:45px 20px;}.empty-i{font-size:32px;opacity:.3;margin-bottom:9px;}
+.empty-t{font-family:'IM Fell English',serif;font-size:17px;color:var(--txd);}.empty-s{font-size:13px;color:var(--txf);margin-top:5px;}
+.no-proj{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:13px;text-align:center;padding:40px;}
+.no-proj h2{font-family:'IM Fell English',serif;font-size:27px;color:var(--txd);}.no-proj p{color:var(--txf);max-width:300px;font-size:15px;}
+.act-hdr{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--tl);text-transform:uppercase;letter-spacing:.12em;padding:4px 9px 5px;border-bottom:1px solid var(--b);margin-bottom:7px;margin-top:3px;}
+.chat-wrap{display:flex;flex-direction:column;height:100%;overflow:hidden;}
+.ctx-bar{padding:6px 15px;background:var(--card);border-bottom:1px solid var(--b);display:flex;align-items:center;gap:8px;flex-shrink:0;}
+.ctx-dot{width:6px;height:6px;border-radius:50%;background:var(--ok);flex-shrink:0;}.ctx-dot.off{background:var(--txf);}
+.ctx-txt{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--txd);text-transform:uppercase;letter-spacing:.06em;}
+.msgs{flex:1;overflow-y:auto;padding:12px 16px;display:flex;flex-direction:column;gap:9px;}
+.msg{max-width:82%;}.msg.u{align-self:flex-end;}.msg.a{align-self:flex-start;}
+.bubble{padding:9px 13px;border-radius:8px;font-size:15px;line-height:1.7;}
+.msg.u .bubble{background:var(--acg);border:1px solid var(--acd);color:var(--txb);border-radius:8px 8px 2px 8px;}
+.msg.a .bubble{background:var(--card);border:1px solid var(--b);color:var(--tx);border-radius:8px 8px 8px 2px;}
+.bubble p{margin-bottom:.35em;}.bubble p:last-child{margin-bottom:0;}
+.bubble strong{color:var(--txb);}.bubble em{color:var(--ac);font-style:italic;}
+.bubble code{font-family:'JetBrains Mono',monospace;font-size:12px;background:rgba(0,0,0,.35);padding:1px 5px;border-radius:2px;color:var(--tl);}
+.bubble h3{font-family:'IM Fell English',serif;font-size:16px;color:var(--ac);margin:7px 0 3px;}
+.bubble li{margin-left:15px;margin-bottom:2px;}
+.chat-bar{display:flex;gap:8px;padding:9px 16px;border-top:1px solid var(--b);background:var(--sb);flex-shrink:0;}
+.chat-in{flex:1;background:var(--card);border:1px solid var(--b);color:var(--tx);font-family:'Crimson Pro',serif;font-size:16px;padding:8px 12px;border-radius:6px;outline:none;resize:none;line-height:1.5;max-height:160px;}
+.chat-in:focus{border-color:var(--acd);}.chat-in::placeholder{color:var(--txf);}
+.send{background:var(--acg);border:1px solid var(--acd);color:var(--ac);width:40px;height:40px;border-radius:6px;cursor:pointer;font-size:17px;display:flex;align-items:center;justify-content:center;align-self:flex-end;flex-shrink:0;transition:all .14s;}
+.send:hover:not(:disabled){background:rgba(196,146,42,.26);}.send:disabled{opacity:.35;cursor:not-allowed;}
+.dots{display:flex;gap:4px;align-items:center;padding:9px 11px;}
+.dot{width:5px;height:5px;border-radius:50%;background:var(--txd);animation:pulse 1.2s ease infinite;}
+.dot:nth-child(2){animation-delay:.2s}.dot:nth-child(3){animation-delay:.4s}
+@keyframes pulse{0%,60%,100%{opacity:.3;transform:scale(1)}30%{opacity:1;transform:scale(1.25)}}
+.rc-common{color:#8a8a8a;border-color:rgba(138,138,138,.4);}
+.rc-uncommon{color:#5aaf6a;border-color:rgba(90,175,106,.4);}
+.rc-rare{color:#4a82c4;border-color:rgba(74,130,196,.4);}
+.rc-epic{color:#9b5adf;border-color:rgba(155,90,223,.4);}
+.rc-legendary{color:#c4922a;border-color:rgba(196,146,42,.5);}
+.rc-mythic{color:#c45a5a;border-color:rgba(196,90,90,.4);}
+.sprev{background:rgba(7,6,5,.4);border:2px solid;border-radius:6px;padding:14px 16px;font-family:'JetBrains Mono',monospace;max-width:360px;min-width:240px;}
+.sprev-type{font-size:9px;letter-spacing:.15em;text-transform:uppercase;margin-bottom:6px;opacity:.65;}
+.sprev-title{font-family:'IM Fell English',serif;font-size:19px;margin-bottom:3px;}
+.sprev-sub{font-size:12px;opacity:.6;margin-bottom:8px;}
+.sprev-div{height:1px;background:currentColor;opacity:.2;margin:8px 0;}
+.sprev-field{display:flex;justify-content:space-between;font-size:12px;padding:2px 0;}
+.sprev-label{opacity:.55;}.sprev-val{opacity:.9;}
+.sprev-body{font-family:'Crimson Pro',serif;font-size:13px;line-height:1.6;margin-top:6px;opacity:.8;font-style:italic;}
+.sprev-foot{font-size:9px;opacity:.4;margin-top:8px;text-align:right;letter-spacing:.07em;}
+.tbl{width:100%;border-collapse:collapse;font-size:14px;}
+.tbl th{font-family:'JetBrains Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--tl);padding:7px 9px;border-bottom:1px solid var(--b);text-align:left;}
+.tbl td{padding:7px 9px;border-bottom:1px solid var(--b);vertical-align:top;}
+.tbl tr:hover td{background:var(--card);}
+.idea-card{background:var(--card);border:1px solid var(--b);border-radius:4px;padding:10px 13px;margin-bottom:6px;transition:border-color .12s;}
+.idea-card:hover{border-color:var(--bl);}
+.idea-text{font-size:15px;color:var(--tx);line-height:1.65;white-space:pre-wrap;}
+.idea-meta{display:flex;align-items:center;justify-content:space-between;margin-top:6px;}
+.idea-time{font-family:'JetBrains Mono';font-size:10px;color:var(--txf);}
+.itag{display:inline-flex;align-items:center;padding:2px 8px;border-radius:12px;font-size:10px;font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:.06em;cursor:pointer;border:1px solid;transition:all .12s;}
+.itag.plot{color:#c4922a;border-color:rgba(196,146,42,.4);background:rgba(196,146,42,.08);}
+.itag.character{color:#4a8a8c;border-color:rgba(74,138,140,.4);background:rgba(74,138,140,.08);}
+.itag.mechanics{color:#9b5adf;border-color:rgba(155,90,223,.4);background:rgba(155,90,223,.08);}
+.itag.world{color:#5aaf6a;border-color:rgba(90,175,106,.4);background:rgba(90,175,106,.08);}
+.itag.scene{color:#c47a4a;border-color:rgba(196,122,74,.4);background:rgba(196,122,74,.08);}
+.itag.other{color:var(--txd);border-color:var(--b);background:transparent;}
+.frow{background:var(--card);border:1px solid var(--b);border-radius:4px;padding:11px 13px;margin-bottom:6px;}
+.frow.resolved{opacity:.55;}
+.ftag{display:inline-block;font-size:10px;font-family:'JetBrains Mono';padding:1px 7px;border-radius:2px;text-transform:uppercase;letter-spacing:.07em;}
+.ftag.p{background:rgba(74,138,140,.15);color:var(--tl);border:1px solid rgba(74,138,140,.35);}
+.ftag.r{background:rgba(90,175,106,.12);color:#5aaf6a;border:1px solid rgba(90,175,106,.35);}
+.gen-out{background:var(--card);border:1px solid var(--b);border-radius:5px;padding:14px;margin-top:14px;}
+.gen-names{display:flex;flex-wrap:wrap;gap:7px;}
+.gen-name{font-family:'IM Fell English',serif;font-size:17px;color:var(--txb);background:var(--card2);border:1px solid var(--b);padding:6px 13px;border-radius:4px;cursor:pointer;transition:all .13s;user-select:none;}
+.gen-name:hover{border-color:var(--acd);color:var(--ac);}
+.gen-name.cp{border-color:var(--ok);color:#5aaf6a;}
+.beat-out-item{display:flex;gap:11px;padding:9px 0;border-bottom:1px solid var(--b);font-size:15px;color:var(--tx);line-height:1.6;}
+.beat-out-item:last-child{border-bottom:none;}
+.beat-num{font-family:'JetBrains Mono';font-size:11px;color:var(--ac);flex-shrink:0;width:18px;padding-top:2px;}
+.toast{position:fixed;bottom:18px;right:18px;background:var(--ac);color:#0d0c0a;font-family:'JetBrains Mono';font-size:11px;padding:7px 14px;border-radius:3px;z-index:999;animation:fadeToast 2s forwards;pointer-events:none;}
+@keyframes fadeToast{0%{opacity:0;transform:translateY(8px)}15%{opacity:1;transform:translateY(0)}70%{opacity:1}100%{opacity:0}}
+.scard{background:var(--card);border:1px solid var(--b);border-radius:5px;padding:10px 13px;margin-bottom:6px;cursor:pointer;transition:border-color .12s;}
+.scard:hover{border-color:var(--bl);}.scard.on{border-color:var(--acd);background:var(--acg);}
+.scard-name{font-size:15px;color:var(--txb);}.scard-sub{font-size:10px;font-family:'JetBrains Mono';color:var(--txd);text-transform:uppercase;margin-top:2px;letter-spacing:.05em;}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect, useRef } = React;
+
+const SK = 'scriptorium_v2';
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,5);
+const defPd = () => ({world:[],characters:[],outline:[],screens:[],continuityFields:[],continuityLog:[],ideas:[],foreshadowing:[]});
+const mergePd = pd => ({...defPd(),...pd});
+
+function loadStore() {
+  try { const r = localStorage.getItem(SK); return r ? JSON.parse(r) : {projects:[],cur:null,data:{}}; }
+  catch { return {projects:[],cur:null,data:{}}; }
+}
+function saveStore(d) { try { localStorage.setItem(SK, JSON.stringify(d)); } catch(e) { console.error(e); } }
+
+function Toast({msg, onDone}) {
+  useEffect(() => { const t = setTimeout(onDone, 2100); return () => clearTimeout(t); }, []);
+  return <div className="toast">{msg}</div>;
+}
+
+/* ── WORLD BIBLE ── */
+function WorldBible({pd, onUpdate}) {
+  const entries = pd.world || [];
+  const [sel, setSel] = useState(null);
+  const [modal, setModal] = useState(false);
+  const [form, setForm] = useState({});
+  const CATS = ['Mechanics','Magic System','Lore','Geography','Factions','History','Rules','Monsters','Items','Other'];
+  const selE = sel && entries.find(e => e.id === sel.id);
+  const open = e => { setForm(e ? {...e} : {title:'',category:'Mechanics',content:''}); setModal(true); };
+  const save2 = () => {
+    if (!form.title.trim()) return;
+    const u = form.id ? entries.map(e => e.id===form.id ? form : e) : [...entries, {id:uid(),...form}];
+    onUpdate({world:u}); if (form.id) setSel(form); setModal(false);
+  };
+  const del = id => { onUpdate({world:entries.filter(e=>e.id!==id)}); setSel(null); };
+  return (
+    <div style={{display:'flex',flexDirection:'column',height:'100%'}}>
+      <div className="sec-hdr"><h1 className="sec-title">World <em>Bible</em></h1><button className="btn btn-a btn-sm" onClick={()=>open(null)}>+ Entry</button></div>
+      <div className="two-panel">
+        <div className="list-pane">
+          {entries.length===0 && <div className="empty"><div className="empty-t" style={{fontSize:13}}>No entries yet</div><div className="empty-s">Mechanics, lore, rules...</div></div>}
+          {entries.map(e => <div key={e.id} className={`li ${selE?.id===e.id?'on':''}`} onClick={()=>setSel(e)}><div className="li-title">{e.title}</div><div className="li-sub">{e.category}</div></div>)}
+        </div>
+        <div className="detail-pane">
+          {!selE ? <div className="empty"><div className="empty-i">📜</div><div className="empty-t">Select an entry</div></div> : (<>
+            <div className="det-row" style={{marginBottom:9}}>
+              <div><div className="det-name">{selE.title}</div><div style={{marginTop:4}}><span className="tag t">{selE.category}</span></div></div>
+              <div className="spacer"/>
+              <button className="btn btn-g btn-sm" onClick={()=>open(selE)}>Edit</button>
+              <button className="btn btn-d btn-sm" onClick={()=>del(selE.id)}>Delete</button>
+            </div>
+            <hr className="div"/><div className="det-body">{selE.content}</div>
+          </>)}
+        </div>
+      </div>
+      {modal && <div className="overlay" onClick={e=>e.target.className==='overlay'&&setModal(false)}><div className="modal">
+        <div className="m-title">{form.id?'Edit Entry':'New Entry'}</div>
+        <div className="fg"><label className="fl">Title</label><input className="fi" value={form.title||''} onChange={e=>setForm({...form,title:e.target.value})} autoFocus/></div>
+        <div className="fg"><label className="fl">Category</label><select className="fsel" value={form.category||'Mechanics'} onChange={e=>setForm({...form,category:e.target.value})}>{CATS.map(c=><option key={c}>{c}</option>)}</select></div>
+        <div className="fg"><label className="fl">Content</label><textarea className="fta" style={{minHeight:180}} value={form.content||''} onChange={e=>setForm({...form,content:e.target.value})}/></div>
+        <div className="m-foot"><button className="btn btn-g" onClick={()=>setModal(false)}>Cancel</button><button className="btn btn-a" onClick={save2}>Save</button></div>
+      </div></div>}
+    </div>
+  );
+}
+
+/* ── CHARACTERS ── */
+function Characters({pd, onUpdate}) {
+  const chars = pd.characters || [];
+  const [sel, setSel] = useState(null);
+  const [modal, setModal] = useState(false);
+  const [form, setForm] = useState({});
+  const [sk, setSk] = useState(''); const [sv, setSv] = useState('');
+  const ROLES = ['Protagonist','Antagonist','Ally','Rival','Mentor','NPC','Monster','Other'];
+  const selC = sel && chars.find(c => c.id===sel.id);
+  const emptyF = () => ({title:'',role:'Protagonist',class:'',level:'',stats:{},traits:'',voice:'',background:'',notes:''});
+  const open = c => { setForm(c ? {...c,stats:{...c.stats}} : emptyF()); setModal(true); };
+  const save2 = () => {
+    if (!form.title.trim()) return;
+    const u = form.id ? chars.map(c=>c.id===form.id?form:c) : [...chars,{id:uid(),...form}];
+    onUpdate({characters:u}); if (form.id) setSel(form); setModal(false);
+  };
+  const del = id => { onUpdate({characters:chars.filter(c=>c.id!==id)}); setSel(null); };
+  const addStat = () => { if(!sk.trim()) return; setForm(f=>({...f,stats:{...f.stats,[sk.trim()]:sv}})); setSk(''); setSv(''); };
+  const remStat = k => { const s={...form.stats}; delete s[k]; setForm(f=>({...f,stats:s})); };
+  return (
+    <div style={{display:'flex',flexDirection:'column',height:'100%'}}>
+      <div className="sec-hdr"><h1 className="sec-title">Character <em>Registry</em></h1><button className="btn btn-a btn-sm" onClick={()=>open(null)}>+ Character</button></div>
+      <div className="two-panel">
+        <div className="list-pane">
+          {chars.length===0 && <div className="empty"><div className="empty-t" style={{fontSize:13}}>No characters yet</div></div>}
+          {chars.map(c => <div key={c.id} className={`li ${selC?.id===c.id?'on':''}`} onClick={()=>setSel(c)}><div className="li-title">{c.title}</div><div className="li-sub">{c.role}{c.class?` · ${c.class}`:''}{c.level?` · Lv${c.level}`:''}</div></div>)}
+        </div>
+        <div className="detail-pane">
+          {!selC ? <div className="empty"><div className="empty-i">⚔</div><div className="empty-t">Select a character</div></div> : (<>
+            <div className="det-row" style={{marginBottom:9}}>
+              <div><div className="det-name">{selC.title}</div><div style={{marginTop:4}}><span className="tag a">{selC.role}</span>{selC.class&&<span className="tag t">{selC.class}</span>}{selC.level&&<span className="tag">Lv {selC.level}</span>}</div></div>
+              <div className="spacer"/>
+              <button className="btn btn-g btn-sm" onClick={()=>open(selC)}>Edit</button>
+              <button className="btn btn-d btn-sm" onClick={()=>del(selC.id)}>Delete</button>
+            </div>
+            {Object.keys(selC.stats||{}).length>0 && <><div className="fl" style={{marginBottom:7}}>Stats</div><div className="stats-g">{Object.entries(selC.stats).map(([k,v])=><div key={k} className="stat-c"><div className="stat-n">{k}</div><div className="stat-v">{v}</div></div>)}</div></>}
+            {selC.traits && <div style={{marginBottom:11}}><div className="fl">Traits</div><div className="det-body">{selC.traits}</div></div>}
+            {selC.voice && <div style={{marginBottom:11}}><div className="fl">Voice & Tone</div><div className="det-body" style={{fontStyle:'italic'}}>{selC.voice}</div></div>}
+            {selC.background && <div style={{marginBottom:11}}><div className="fl">Background</div><div className="det-body">{selC.background}</div></div>}
+            {selC.notes && <div><div className="fl">Notes</div><div className="det-body" style={{color:'var(--txd)'}}>{selC.notes}</div></div>}
+          </>)}
+        </div>
+      </div>
+      {modal && <div className="overlay" onClick={e=>e.target.className==='overlay'&&setModal(false)}><div className="modal">
+        <div className="m-title">{form.id?'Edit Character':'New Character'}</div>
+        <div className="f2">
+          <div className="fg f-full"><label className="fl">Name</label><input className="fi" value={form.title||''} onChange={e=>setForm({...form,title:e.target.value})} autoFocus/></div>
+          <div className="fg"><label className="fl">Role</label><select className="fsel" value={form.role||'Protagonist'} onChange={e=>setForm({...form,role:e.target.value})}>{ROLES.map(r=><option key={r}>{r}</option>)}</select></div>
+          <div className="fg"><label className="fl">Class / Title</label><input className="fi" value={form.class||''} onChange={e=>setForm({...form,class:e.target.value})}/></div>
+          <div className="fg"><label className="fl">Level</label><input className="fi" value={form.level||''} onChange={e=>setForm({...form,level:e.target.value})}/></div>
+        </div>
+        <div className="fg"><label className="fl">Stats</label>
+          <div style={{marginBottom:7}}>{Object.entries(form.stats||{}).map(([k,v])=><div key={k} style={{display:'flex',gap:7,alignItems:'center',marginBottom:3}}><span style={{fontFamily:'JetBrains Mono',fontSize:11,color:'var(--tl)',flex:'0 0 110px'}}>{k}</span><span style={{fontSize:14,flex:1}}>{v}</span><button className="ib d" onClick={()=>remStat(k)}>✕</button></div>)}</div>
+          <div className="i-row"><input className="fi" value={sk} onChange={e=>setSk(e.target.value)} placeholder="Name" style={{flex:'0 0 115px'}}/><input className="fi" value={sv} onChange={e=>setSv(e.target.value)} placeholder="Value" onKeyDown={e=>e.key==='Enter'&&addStat()}/><button className="btn btn-g btn-sm" onClick={addStat}>Add</button></div>
+        </div>
+        <div className="fg"><label className="fl">Traits / Personality</label><textarea className="fta" style={{minHeight:70}} value={form.traits||''} onChange={e=>setForm({...form,traits:e.target.value})}/></div>
+        <div className="fg"><label className="fl">Voice & Dialogue Tone</label><textarea className="fta" style={{minHeight:70}} value={form.voice||''} onChange={e=>setForm({...form,voice:e.target.value})} placeholder="How they speak, internal register, what they notice..."/></div>
+        <div className="fg"><label className="fl">Background</label><textarea className="fta" style={{minHeight:70}} value={form.background||''} onChange={e=>setForm({...form,background:e.target.value})}/></div>
+        <div className="fg"><label className="fl">Notes</label><textarea className="fta" style={{minHeight:55}} value={form.notes||''} onChange={e=>setForm({...form,notes:e.target.value})}/></div>
+        <div className="m-foot"><button className="btn btn-g" onClick={()=>setModal(false)}>Cancel</button><button className="btn btn-a" onClick={save2}>Save</button></div>
+      </div></div>}
+    </div>
+  );
+}
+
+/* ── OUTLINE ── */
+function Outline({pd, onUpdate}) {
+  const chs = pd.outline || [];
+  const [sel, setSel] = useState(null);
+  const [modal, setModal] = useState(false);
+  const [form, setForm] = useState({});
+  const [nb, setNb] = useState('');
+  const selCh = sel && chs.find(c=>c.id===sel.id);
+  const open = c => { setForm(c ? {...c,beats:[...c.beats]} : {number:'',act:'1',title:'',beats:[],notes:''}); setModal(true); };
+  const save2 = () => {
+    if (!form.title.trim()) return;
+    const u = form.id ? chs.map(c=>c.id===form.id?form:c) : [...chs,{id:uid(),...form}];
+    onUpdate({outline:u}); if (form.id) setSel(form); setModal(false);
+  };
+  const del = id => { onUpdate({outline:chs.filter(c=>c.id!==id)}); setSel(null); };
+  const addBeat = () => { if(!nb.trim()) return; setForm(f=>({...f,beats:[...f.beats,nb.trim()]})); setNb(''); };
+  const acts = [...new Set(chs.map(c=>c.act))].sort();
+  return (
+    <div style={{display:'flex',flexDirection:'column',height:'100%'}}>
+      <div className="sec-hdr"><h1 className="sec-title">Story <em>Outline</em></h1><button className="btn btn-a btn-sm" onClick={()=>open(null)}>+ Chapter</button></div>
+      <div className="two-panel">
+        <div className="list-pane">
+          {chs.length===0 && <div className="empty"><div className="empty-t" style={{fontSize:13}}>No chapters yet</div></div>}
+          {acts.map(act => <div key={act}><div className="act-hdr">Act {act}</div>{chs.filter(c=>c.act===act).sort((a,b)=>Number(a.number)-Number(b.number)).map(c=><div key={c.id} className={`li ${selCh?.id===c.id?'on':''}`} onClick={()=>setSel(c)}><div className="li-title">{c.number?`Ch.${c.number} · `:''}{c.title}</div><div className="li-sub">{c.beats.length} beat{c.beats.length!==1?'s':''}</div></div>)}</div>)}
+        </div>
+        <div className="detail-pane">
+          {!selCh ? <div className="empty"><div className="empty-i">📋</div><div className="empty-t">Select a chapter</div></div> : (<>
+            <div className="det-row" style={{marginBottom:9}}>
+              <div><div style={{fontFamily:'JetBrains Mono',fontSize:10,color:'var(--tl)',textTransform:'uppercase',letterSpacing:'0.1em',marginBottom:3}}>Act {selCh.act}{selCh.number?` · Chapter ${selCh.number}`:''}</div><div className="det-name">{selCh.title}</div></div>
+              <div className="spacer"/>
+              <button className="btn btn-g btn-sm" onClick={()=>open(selCh)}>Edit</button>
+              <button className="btn btn-d btn-sm" onClick={()=>del(selCh.id)}>Delete</button>
+            </div>
+            {selCh.beats.length>0 && <><div className="fl" style={{marginBottom:7}}>Beats</div><div style={{marginBottom:12}}>{selCh.beats.map((b,i)=><div key={i} className="beat">{b}</div>)}</div></>}
+            {selCh.notes && <div><div className="fl">Notes</div><div className="det-body" style={{fontStyle:'italic'}}>{selCh.notes}</div></div>}
+          </>)}
+        </div>
+      </div>
+      {modal && <div className="overlay" onClick={e=>e.target.className==='overlay'&&setModal(false)}><div className="modal">
+        <div className="m-title">{form.id?'Edit Chapter':'New Chapter'}</div>
+        <div className="f2">
+          <div className="fg"><label className="fl">Chapter #</label><input className="fi" value={form.number||''} onChange={e=>setForm({...form,number:e.target.value})}/></div>
+          <div className="fg"><label className="fl">Act</label><select className="fsel" value={form.act||'1'} onChange={e=>setForm({...form,act:e.target.value})}>{['1','2','3','4','5'].map(a=><option key={a}>{a}</option>)}</select></div>
+          <div className="fg f-full"><label className="fl">Title</label><input className="fi" value={form.title||''} onChange={e=>setForm({...form,title:e.target.value})} autoFocus/></div>
+        </div>
+        <div className="fg"><label className="fl">Story Beats</label>
+          {form.beats.map((b,i)=><div key={i} className="beat-row"><input className="beat-fi" value={b} onChange={e=>setForm(f=>({...f,beats:f.beats.map((x,j)=>j===i?e.target.value:x)}))}/><button className="ib d" onClick={()=>setForm(f=>({...f,beats:f.beats.filter((_,j)=>j!==i)}))}>✕</button></div>)}
+          <div className="beat-row"><input className="beat-fi" value={nb} onChange={e=>setNb(e.target.value)} placeholder="Add a beat..." onKeyDown={e=>e.key==='Enter'&&addBeat()}/><button className="ib" style={{fontSize:18,color:'var(--ac)'}} onClick={addBeat}>+</button></div>
+        </div>
+        <div className="fg"><label className="fl">Notes</label><textarea className="fta" style={{minHeight:65}} value={form.notes||''} onChange={e=>setForm({...form,notes:e.target.value})}/></div>
+        <div className="m-foot"><button className="btn btn-g" onClick={()=>setModal(false)}>Cancel</button><button className="btn btn-a" onClick={save2}>Save</button></div>
+      </div></div>}
+    </div>
+  );
+}
+
+/* ── SYSTEM SCREEN BUILDER ── */
+const RARITIES = ['Common','Uncommon','Rare','Epic','Legendary','Mythic'];
+const STYPES = ['Notification','Skill Acquired','Level Up','Stat Screen','Item Acquired','Warning','Achievement','System'];
+const SICONS = {Notification:'⚡','Skill Acquired':'✦','Level Up':'▲','Stat Screen':'◈','Item Acquired':'◆',Warning:'⚠',Achievement:'★',System:'⊛'};
+const rcClass = r => `rc-${r.toLowerCase()}`;
+function buildText(s) {
+  const sep = '─'.repeat(34); const ico = SICONS[s.type]||'◈';
+  let t = `[ ${ico} ${s.type.toUpperCase()}${s.rarity?` · ${s.rarity.toUpperCase()}`:''} ]\n${sep}`;
+  if(s.title) t += `\n  ${s.title}`;
+  if(s.subtitle) t += `\n  ${s.subtitle}`;
+  if((s.fields||[]).some(f=>f.label||f.value)) { t += `\n${sep}`; (s.fields||[]).filter(f=>f.label||f.value).forEach(f=>{ t += `\n  ${(f.label+'').padEnd(16)}${f.value}`; }); }
+  if(s.body) { t += `\n${sep}\n  ${s.body.replace(/\n/g,'\n  ')}`; }
+  if(s.footer) { t += `\n${sep}\n  ${s.footer}`; }
+  t += `\n${sep}`; return t;
+}
+function SystemScreens({pd, onUpdate, toast}) {
+  const screens = pd.screens || [];
+  const [viewTab, setViewTab] = useState('build');
+  const [sel, setSel] = useState(null);
+  const emptyF = () => ({type:'Notification',rarity:'Common',title:'',subtitle:'',fields:[{label:'',value:''}],body:'',footer:''});
+  const [form, setForm] = useState(emptyF());
+  const selS = sel && screens.find(s=>s.id===sel.id);
+  const saveScreen = () => {
+    if (!form.title.trim()) return;
+    const id = form.id || uid();
+    const entry = {...form, id};
+    const u = form.id ? screens.map(s=>s.id===form.id?entry:s) : [...screens,entry];
+    onUpdate({screens:u}); setSel(entry); setViewTab('library');
+  };
+  const loadScreen = s => { setSel(s); setForm({...s,fields:[...(s.fields||[{label:'',value:''}])]}); setViewTab('build'); };
+  const del = id => { onUpdate({screens:screens.filter(s=>s.id!==id)}); setSel(null); setForm(emptyF()); };
+  const newScreen = () => { setForm(emptyF()); setSel(null); setViewTab('build'); };
+  const addField = () => setForm(f=>({...f,fields:[...f.fields,{label:'',value:''}]}));
+  const upField = (i,k,v) => setForm(f=>({...f,fields:f.fields.map((x,j)=>j===i?{...x,[k]:v}:x)}));
+  const remField = i => setForm(f=>({...f,fields:f.fields.filter((_,j)=>j!==i)}));
+  const copyText = () => { navigator.clipboard.writeText(buildText(form)); toast('Copied to clipboard!'); };
+  const rc = rcClass(form.rarity||'Common');
+  return (
+    <div style={{display:'flex',flexDirection:'column',height:'100%'}}>
+      <div className="sec-hdr"><h1 className="sec-title">System <em>Screen Builder</em></h1>
+        <div style={{display:'flex',gap:6}}>
+          <button className={`btn btn-sm ${viewTab==='build'?'btn-a':'btn-g'}`} onClick={()=>setViewTab('build')}>Builder</button>
+          <button className={`btn btn-sm ${viewTab==='library'?'btn-a':'btn-g'}`} onClick={()=>setViewTab('library')}>Library ({screens.length})</button>
+          <button className="btn btn-a btn-sm" onClick={newScreen}>+ New</button>
+        </div>
+      </div>
+      {viewTab==='build' && <div style={{display:'flex',flex:1,overflow:'hidden',marginTop:11}}>
+        <div style={{width:280,borderRight:'1px solid var(--b)',overflowY:'auto',padding:'12px 10px',flexShrink:0}}>
+          <div className="fg"><label className="fl">Type</label><select className="fsel" value={form.type} onChange={e=>setForm({...form,type:e.target.value})}>{STYPES.map(t=><option key={t}>{t}</option>)}</select></div>
+          <div className="fg"><label className="fl">Rarity</label><select className="fsel" value={form.rarity} onChange={e=>setForm({...form,rarity:e.target.value})}>{RARITIES.map(r=><option key={r}>{r}</option>)}</select></div>
+          <div className="fg"><label className="fl">Title</label><input className="fi" value={form.title} onChange={e=>setForm({...form,title:e.target.value})} placeholder="e.g. Shadow Step"/></div>
+          <div className="fg"><label className="fl">Subtitle</label><input className="fi" value={form.subtitle} onChange={e=>setForm({...form,subtitle:e.target.value})} placeholder="e.g. Shadow Dancer Ability"/></div>
+          <div className="fg"><label className="fl">Fields <button className="ib" style={{fontSize:15,color:'var(--ac)'}} onClick={addField}>+</button></label>
+            {form.fields.map((f,i)=><div key={i} style={{display:'flex',gap:5,marginBottom:5}}><input className="fi" value={f.label} onChange={e=>upField(i,'label',e.target.value)} placeholder="Label" style={{flex:'0 0 100px'}}/><input className="fi" value={f.value} onChange={e=>upField(i,'value',e.target.value)} placeholder="Value"/><button className="ib d" onClick={()=>remField(i)}>✕</button></div>)}
+          </div>
+          <div className="fg"><label className="fl">Description / Flavour</label><textarea className="fta" style={{minHeight:75}} value={form.body} onChange={e=>setForm({...form,body:e.target.value})} placeholder="Flavour text or ability description..."/></div>
+          <div className="fg"><label className="fl">Footer</label><input className="fi" value={form.footer} onChange={e=>setForm({...form,footer:e.target.value})} placeholder="e.g. System Notification"/></div>
+          <div style={{display:'flex',gap:6}}><button className="btn btn-a" onClick={saveScreen} style={{flex:1}}>Save Screen</button><button className="btn btn-t btn-sm" onClick={copyText}>Copy Text</button></div>
+        </div>
+        <div style={{flex:1,overflowY:'auto',padding:'24px',display:'flex',flexDirection:'column',alignItems:'center',gap:16}}>
+          <div style={{fontFamily:'JetBrains Mono',fontSize:10,color:'var(--txd)',textTransform:'uppercase',letterSpacing:'.1em',alignSelf:'flex-start'}}>Live Preview</div>
+          <div className={`sprev ${rc}`}>
+            <div className={`sprev-type ${rc}`}>{SICONS[form.type]||'◈'} {form.type}{form.rarity?` · ${form.rarity}`:''}</div>
+            {form.title && <div className={`sprev-title ${rc}`}>{form.title}</div>}
+            {form.subtitle && <div className="sprev-sub">{form.subtitle}</div>}
+            {(form.fields||[]).some(f=>f.label||f.value) && <><div className="sprev-div"/>{form.fields.filter(f=>f.label||f.value).map((f,i)=><div key={i} className="sprev-field"><span className="sprev-label">{f.label}</span><span className="sprev-val">{f.value}</span></div>)}</>}
+            {form.body && <><div className="sprev-div"/><div className="sprev-body">{form.body}</div></>}
+            {form.footer && <><div className="sprev-div"/><div className="sprev-foot">{form.footer}</div></>}
+          </div>
+          <div style={{background:'var(--card)',border:'1px solid var(--b)',borderRadius:5,padding:13,width:'100%',maxWidth:420}}>
+            <div className="fl" style={{marginBottom:8}}>Text Output — paste into manuscript</div>
+            <pre style={{fontFamily:'JetBrains Mono',fontSize:11,color:'var(--txd)',whiteSpace:'pre-wrap',lineHeight:1.65}}>{buildText(form)}</pre>
+          </div>
+        </div>
+      </div>}
+      {viewTab==='library' && <div className="full-pane">
+        {screens.length===0 && <div className="empty"><div className="empty-i">🖥</div><div className="empty-t">No saved screens yet</div><div className="empty-s">Build and save notification screens, stat blocks, skill cards...</div></div>}
+        <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(220px,1fr))',gap:8}}>
+          {screens.map(s=><div key={s.id} className={`scard ${selS?.id===s.id?'on':''}`} onClick={()=>loadScreen(s)}>
+            <div className="scard-name">{SICONS[s.type]||'◈'} {s.title||'Untitled'}</div>
+            <div className="scard-sub">{s.type} · <span className={rcClass(s.rarity||'Common')}>{s.rarity}</span></div>
+            <div style={{marginTop:7,display:'flex',gap:5}}><button className="btn btn-g btn-sm" onClick={e=>{e.stopPropagation();loadScreen(s);}}>Load</button><button className="btn btn-d btn-sm" onClick={e=>{e.stopPropagation();del(s.id);}}>✕</button></div>
+          </div>)}
+        </div>
+      </div>}
+    </div>
+  );
+}
+
+/* ── CONTINUITY LOG ── */
+function ContinuityLog({pd, onUpdate}) {
+  const fields = pd.continuityFields||[]; const log = pd.continuityLog||[];
+  const [modal, setModal] = useState(false); const [fieldModal, setFieldModal] = useState(false);
+  const [form, setForm] = useState({}); const [newField, setNewField] = useState('');
+  const addField = () => { if(!newField.trim()) return; onUpdate({continuityFields:[...fields,newField.trim()]}); setNewField(''); };
+  const remField = f => onUpdate({continuityFields:fields.filter(x=>x!==f),continuityLog:log.map(e=>{const v={...e.values};delete v[f];return{...e,values:v};})});
+  const open = e => { setForm(e?{...e}:{chapterNum:'',chapterTitle:'',values:{},notes:''}); setModal(true); };
+  const save2 = () => { const u=form.id?log.map(e=>e.id===form.id?form:e):[...log,{id:uid(),...form}]; onUpdate({continuityLog:u}); setModal(false); };
+  const del = id => onUpdate({continuityLog:log.filter(e=>e.id!==id)});
+  const sorted = [...log].sort((a,b)=>Number(a.chapterNum)-Number(b.chapterNum));
+  return (
+    <div style={{display:'flex',flexDirection:'column',height:'100%'}}>
+      <div className="sec-hdr"><h1 className="sec-title">Continuity <em>Log</em></h1>
+        <div style={{display:'flex',gap:6}}><button className="btn btn-g btn-sm" onClick={()=>setFieldModal(true)}>⚙ Fields</button><button className="btn btn-a btn-sm" onClick={()=>open(null)}>+ Entry</button></div>
+      </div>
+      {fields.length===0 ? <div className="empty" style={{marginTop:40}}><div className="empty-i">📊</div><div className="empty-t">Set up your tracked fields</div><div className="empty-s">e.g. Integration %, Essence, Level, Active Skills</div><button className="btn btn-a" style={{marginTop:14}} onClick={()=>setFieldModal(true)}>Configure Fields</button></div>
+      : <div style={{flex:1,overflow:'auto',padding:'14px 18px'}}>
+          <table className="tbl"><thead><tr><th>Ch.</th><th>Title</th>{fields.map(f=><th key={f}>{f}</th>)}<th>Notes</th><th></th></tr></thead>
+            <tbody>
+              {sorted.length===0 && <tr><td colSpan={4+fields.length} style={{textAlign:'center',color:'var(--txf)',padding:'20px',fontStyle:'italic'}}>No entries yet</td></tr>}
+              {sorted.map(e=><tr key={e.id}>
+                <td style={{fontFamily:'JetBrains Mono',fontSize:12,color:'var(--tl)',width:40}}>{e.chapterNum||'—'}</td>
+                <td style={{color:'var(--txb)',fontStyle:'italic'}}>{e.chapterTitle||'—'}</td>
+                {fields.map(f=><td key={f} style={{fontFamily:'JetBrains Mono',fontSize:12}}>{e.values?.[f]||<span style={{color:'var(--txf)'}}>—</span>}</td>)}
+                <td style={{color:'var(--txd)',fontSize:13,maxWidth:160}}>{e.notes}</td>
+                <td style={{whiteSpace:'nowrap'}}><button className="ib" onClick={()=>open(e)}>✎</button><button className="ib d" onClick={()=>del(e.id)}>✕</button></td>
+              </tr>)}
+            </tbody>
+          </table>
+        </div>}
+      {fieldModal && <div className="overlay" onClick={e=>e.target.className==='overlay'&&setFieldModal(false)}><div className="modal">
+        <div className="m-title">Tracked Fields</div>
+        <div style={{marginBottom:14}}>{fields.map(f=><div key={f} style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'5px 0',borderBottom:'1px solid var(--b)'}}><span style={{fontFamily:'JetBrains Mono',fontSize:13,color:'var(--tl)'}}>{f}</span><button className="ib d" onClick={()=>remField(f)}>✕</button></div>)}</div>
+        <div className="i-row"><input className="fi" value={newField} onChange={e=>setNewField(e.target.value)} placeholder="New field name..." onKeyDown={e=>e.key==='Enter'&&addField()}/><button className="btn btn-a btn-sm" onClick={addField}>Add</button></div>
+        <div className="m-foot"><button className="btn btn-a" onClick={()=>setFieldModal(false)}>Done</button></div>
+      </div></div>}
+      {modal && <div className="overlay" onClick={e=>e.target.className==='overlay'&&setModal(false)}><div className="modal">
+        <div className="m-title">{form.id?'Edit Entry':'New Log Entry'}</div>
+        <div className="f2"><div className="fg"><label className="fl">Chapter #</label><input className="fi" value={form.chapterNum||''} onChange={e=>setForm({...form,chapterNum:e.target.value})} autoFocus/></div><div className="fg"><label className="fl">Chapter Title</label><input className="fi" value={form.chapterTitle||''} onChange={e=>setForm({...form,chapterTitle:e.target.value})}/></div></div>
+        {fields.map(f=><div key={f} className="fg"><label className="fl">{f}</label><input className="fi" value={form.values?.[f]||''} onChange={e=>setForm(prev=>({...prev,values:{...prev.values,[f]:e.target.value}}))}/></div>)}
+        <div className="fg"><label className="fl">Notes</label><textarea className="fta" style={{minHeight:70}} value={form.notes||''} onChange={e=>setForm({...form,notes:e.target.value})}/></div>
+        <div className="m-foot"><button className="btn btn-g" onClick={()=>setModal(false)}>Cancel</button><button className="btn btn-a" onClick={save2}>Save</button></div>
+      </div></div>}
+    </div>
+  );
+}
+
+/* ── IDEA CAPTURE ── */
+const ITAGS = ['plot','character','mechanics','world','scene','other'];
+function IdeaCapture({pd, onUpdate}) {
+  const ideas = pd.ideas||[];
+  const [text, setText] = useState(''); const [tag, setTag] = useState('plot'); const [filter, setFilter] = useState('all');
+  const add = () => { if(!text.trim()) return; onUpdate({ideas:[{id:uid(),text:text.trim(),tag,created:Date.now()},...ideas]}); setText(''); };
+  const del = id => onUpdate({ideas:ideas.filter(i=>i.id!==id)});
+  const shown = filter==='all' ? ideas : ideas.filter(i=>i.tag===filter);
+  const fmt = ts => new Date(ts).toLocaleDateString('en-AU',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+  return (
+    <div style={{display:'flex',flexDirection:'column',height:'100%'}}>
+      <div className="sec-hdr"><h1 className="sec-title">Idea <em>Capture</em></h1></div>
+      <div style={{padding:'12px 18px',borderBottom:'1px solid var(--b)',flexShrink:0}}>
+        <textarea className="fta" style={{minHeight:75,marginBottom:8}} value={text} onChange={e=>setText(e.target.value)} placeholder="Capture any idea before it escapes... (plot twists, mechanics, names, scenes, anything)"/>
+        <div style={{display:'flex',alignItems:'center',gap:8}}>
+          {ITAGS.map(t=><button key={t} className={`itag ${t}`} onClick={()=>setTag(t)} style={{opacity:tag===t?1:0.45,fontWeight:tag===t?'600':'400'}}>{t}</button>)}
+          <div className="spacer"/><button className="btn btn-a btn-sm" onClick={add}>Capture</button>
+        </div>
+      </div>
+      <div style={{padding:'10px 16px 6px',display:'flex',alignItems:'center',gap:7,flexShrink:0}}>
+        <span style={{fontFamily:'JetBrains Mono',fontSize:10,color:'var(--txd)',textTransform:'uppercase',letterSpacing:'.08em'}}>Filter:</span>
+        <button className="itag other" onClick={()=>setFilter('all')} style={{opacity:filter==='all'?1:0.45}}>all ({ideas.length})</button>
+        {ITAGS.map(t=>{ const c=ideas.filter(i=>i.tag===t).length; return c>0&&<button key={t} className={`itag ${t}`} onClick={()=>setFilter(t)} style={{opacity:filter===t?1:0.45}}>{t} ({c})</button>; })}
+      </div>
+      <div style={{flex:1,overflowY:'auto',padding:'8px 16px'}}>
+        {shown.length===0 && <div className="empty"><div className="empty-i">💡</div><div className="empty-t">No ideas yet</div><div className="empty-s">Capture half-formed thoughts, sparks, what-ifs...</div></div>}
+        {shown.map(idea=><div key={idea.id} className="idea-card">
+          <div className="idea-text">{idea.text}</div>
+          <div className="idea-meta"><div style={{display:'flex',alignItems:'center',gap:7}}><span className={`itag ${idea.tag}`}>{idea.tag}</span><span className="idea-time">{fmt(idea.created)}</span></div><button className="ib d" onClick={()=>del(idea.id)}>✕</button></div>
+        </div>)}
+      </div>
+    </div>
+  );
+}
+
+/* ── FORESHADOWING TRACKER ── */
+function ForeshadowTracker({pd, onUpdate}) {
+  const items = pd.foreshadowing||[];
+  const [modal, setModal] = useState(false); const [form, setForm] = useState({});
+  const [showResolved, setShowResolved] = useState(true);
+  const open = e => { setForm(e?{...e}:{chapterPlanted:'',detail:'',payoff:'',resolved:false,chapterResolved:''}); setModal(true); };
+  const save2 = () => { if(!form.detail.trim()) return; const u=form.id?items.map(i=>i.id===form.id?form:i):[...items,{id:uid(),...form}]; onUpdate({foreshadowing:u}); setModal(false); };
+  const del = id => onUpdate({foreshadowing:items.filter(i=>i.id!==id)});
+  const toggle = id => onUpdate({foreshadowing:items.map(i=>i.id===id?{...i,resolved:!i.resolved}:i)});
+  const shown = showResolved ? items : items.filter(i=>!i.resolved);
+  const planted = items.filter(i=>!i.resolved).length; const resolved = items.filter(i=>i.resolved).length;
+  return (
+    <div style={{display:'flex',flexDirection:'column',height:'100%'}}>
+      <div className="sec-hdr"><h1 className="sec-title">Foreshadow <em>Tracker</em></h1>
+        <div style={{display:'flex',gap:7,alignItems:'center'}}>
+          <span style={{fontFamily:'JetBrains Mono',fontSize:10,color:'var(--txd)'}}>{planted} planted · {resolved} resolved</span>
+          <button className={`btn btn-sm ${showResolved?'btn-g':'btn-t'}`} onClick={()=>setShowResolved(!showResolved)}>{showResolved?'Hide Resolved':'Show All'}</button>
+          <button className="btn btn-a btn-sm" onClick={()=>open(null)}>+ Plant</button>
+        </div>
+      </div>
+      <div style={{flex:1,overflowY:'auto',padding:'14px 18px'}}>
+        {shown.length===0 && <div className="empty"><div className="empty-i">🔮</div><div className="empty-t">Nothing planted yet</div><div className="empty-s">Track details you've planted that need a payoff later</div></div>}
+        {shown.map(item=><div key={item.id} className={`frow ${item.resolved?'resolved':''}`}>
+          <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',gap:10}}>
+            <div style={{flex:1}}>
+              <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:6}}>
+                <span className={`ftag ${item.resolved?'r':'p'}`}>{item.resolved?'Resolved':'Planted'}</span>
+                {item.chapterPlanted&&<span style={{fontFamily:'JetBrains Mono',fontSize:10,color:'var(--txd)'}}>Ch.{item.chapterPlanted}</span>}
+                {item.resolved&&item.chapterResolved&&<span style={{fontFamily:'JetBrains Mono',fontSize:10,color:'var(--txd)'}}>→ Ch.{item.chapterResolved}</span>}
+              </div>
+              <div style={{fontSize:15,color:'var(--txb)',marginBottom:5}}>{item.detail}</div>
+              <div style={{fontSize:13,color:'var(--txd)',fontStyle:'italic'}}>Payoff: {item.payoff||<span style={{color:'var(--txf)'}}>not defined</span>}</div>
+            </div>
+            <div style={{display:'flex',gap:5,flexShrink:0}}>
+              <button className={`btn btn-sm ${item.resolved?'btn-g':'btn-t'}`} onClick={()=>toggle(item.id)}>{item.resolved?'Unresolve':'Resolve'}</button>
+              <button className="ib" onClick={()=>open(item)}>✎</button>
+              <button className="ib d" onClick={()=>del(item.id)}>✕</button>
+            </div>
+          </div>
+        </div>)}
+      </div>
+      {modal && <div className="overlay" onClick={e=>e.target.className==='overlay'&&setModal(false)}><div className="modal">
+        <div className="m-title">{form.id?'Edit':'Plant a Detail'}</div>
+        <div className="f2"><div className="fg"><label className="fl">Chapter Planted</label><input className="fi" value={form.chapterPlanted||''} onChange={e=>setForm({...form,chapterPlanted:e.target.value})} placeholder="e.g. 3" autoFocus/></div><div className="fg"><label className="fl">Payoff Chapter (if known)</label><input className="fi" value={form.chapterResolved||''} onChange={e=>setForm({...form,chapterResolved:e.target.value})} placeholder="e.g. 15"/></div></div>
+        <div className="fg"><label className="fl">The Planted Detail</label><textarea className="fta" style={{minHeight:80}} value={form.detail||''} onChange={e=>setForm({...form,detail:e.target.value})} placeholder="What did you plant? Be specific enough to find it later."/></div>
+        <div className="fg"><label className="fl">Intended Payoff</label><textarea className="fta" style={{minHeight:70}} value={form.payoff||''} onChange={e=>setForm({...form,payoff:e.target.value})} placeholder="What is this meant to foreshadow or set up?"/></div>
+        <div className="m-foot"><button className="btn btn-g" onClick={()=>setModal(false)}>Cancel</button><button className="btn btn-a" onClick={save2}>Save</button></div>
+      </div></div>}
+    </div>
+  );
+}
+
+/* ── NAME GENERATOR ── */
+const NAMETYPES = ['Character Name','Place Name','Skill Name','Chapter Title','Faction Name','Item Name','Technique Name'];
+const TONES = ['Grimdark','Epic Fantasy','Cosmic Horror','Clinical/Technical','Mythic','Earthy/Grounded','Weird West'];
+const ORIGINS = ['None','Nordic','Japanese','Indigenous/Apache','Latin','Arabic','Slavic','Celtic','Hebrew','Greek','Original'];
+async function callClaude(system, prompt) {
+  const r = await fetch('https://api.anthropic.com/v1/messages', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,system,messages:[{role:'user',content:prompt}]})});
+  const d = await r.json(); return d.content?.find(b=>b.type==='text')?.text||'';
+}
+function NameGenerator({pd, projName}) {
+  const chars = pd.characters||[]; const world = pd.world||[];
+  const [type, setType] = useState('Character Name'); const [tone, setTone] = useState('Grimdark');
+  const [origin, setOrigin] = useState('None'); const [count, setCount] = useState(8);
+  const [extra, setExtra] = useState(''); const [results, setResults] = useState([]);
+  const [busy, setBusy] = useState(false); const [copied, setCopied] = useState(null);
+  const generate = async () => {
+    setBusy(true); setResults([]);
+    const sys = `You are a creative naming assistant for LitRPG fiction. Project: "${projName||'Untitled'}". ${world.length?`World: ${world.slice(0,3).map(e=>`${e.title}: ${e.content.slice(0,120)}`).join('; ')}`:''}${chars.length?` Characters: ${chars.map(c=>c.title).join(', ')}.`:''}`;
+    const prompt = `Generate exactly ${count} ${type.toLowerCase()}s.\nTone: ${tone}\n${origin!=='None'?`Linguistic origin: ${origin}`:'Original/invented'}\n${extra?`Extra: ${extra}`:''}\nReturn ONLY the names, one per line. No numbering, no explanations.`;
+    try {
+      const txt = await callClaude(sys, prompt);
+      const names = txt.split('\n').map(l=>l.trim().replace(/^[\-\*\d\.]+\s*/,'')).filter(l=>l.length>0&&l.length<60).slice(0,count);
+      setResults(names);
+    } catch(e) { setResults(['Error generating — try again']); }
+    setBusy(false);
+  };
+  const copy = (n,i) => { navigator.clipboard.writeText(n); setCopied(i); setTimeout(()=>setCopied(null),1500); };
+  return (
+    <div style={{display:'flex',flexDirection:'column',height:'100%'}}>
+      <div className="sec-hdr"><h1 className="sec-title">Name <em>Generator</em></h1></div>
+      <div style={{flex:1,overflowY:'auto',padding:'16px 20px'}}>
+        <div className="f2" style={{maxWidth:560}}>
+          <div className="fg"><label className="fl">Type</label><select className="fsel" value={type} onChange={e=>setType(e.target.value)}>{NAMETYPES.map(t=><option key={t}>{t}</option>)}</select></div>
+          <div className="fg"><label className="fl">Tone</label><select className="fsel" value={tone} onChange={e=>setTone(e.target.value)}>{TONES.map(t=><option key={t}>{t}</option>)}</select></div>
+          <div className="fg"><label className="fl">Linguistic Origin</label><select className="fsel" value={origin} onChange={e=>setOrigin(e.target.value)}>{ORIGINS.map(o=><option key={o}>{o}</option>)}</select></div>
+          <div className="fg"><label className="fl">Count</label><select className="fsel" value={count} onChange={e=>setCount(Number(e.target.value))}>{[5,8,10,12,15].map(n=><option key={n}>{n}</option>)}</select></div>
+          <div className="fg f-full"><label className="fl">Extra Notes (optional)</label><input className="fi" value={extra} onChange={e=>setExtra(e.target.value)} placeholder="e.g. two syllables, sounds ancient, related to shadow magic..."/></div>
+        </div>
+        <button className="btn btn-a" onClick={generate} disabled={busy} style={{marginBottom:6}}>{busy?'Generating...':'Generate Names'}</button>
+        {busy && <div style={{display:'flex',gap:5,alignItems:'center',margin:'12px 0'}}><div className="dot"/><div className="dot"/><div className="dot"/><span style={{fontFamily:'JetBrains Mono',fontSize:11,color:'var(--txd)',marginLeft:4}}>Conjuring...</span></div>}
+        {results.length>0 && <div className="gen-out"><div className="fl" style={{marginBottom:10}}>Click a name to copy it</div><div className="gen-names">{results.map((n,i)=><div key={i} className={`gen-name ${copied===i?'cp':''}`} onClick={()=>copy(n,i)}>{copied===i?'✓ Copied':n}</div>)}</div></div>}
+      </div>
+    </div>
+  );
+}
+
+/* ── SCENE SCAFFOLD ── */
+const ARCHETYPES = ['Dungeon Encounter','Boss Fight','Revelation','Grind Montage','Character Confrontation','Skill Acquisition','World Event','Quiet Moment / Downtime','Faction Politics','Tutorial / System Introduction','Chase / Escape','Emotional Reckoning'];
+function SceneScaffold({pd, projName, projDesc}) {
+  const chars = pd.characters||[]; const world = pd.world||[];
+  const [archetype, setArchetype] = useState('Dungeon Encounter'); const [pov, setPov] = useState('');
+  const [goal, setGoal] = useState(''); const [beats, setBeats] = useState(null); const [busy, setBusy] = useState(false);
+  const generate = async () => {
+    setBusy(true); setBeats(null);
+    const povChar = chars.find(c=>c.title===pov);
+    const sys = `You are an expert LitRPG story structure assistant. Project: "${projName||'Untitled'}".${projDesc?` ${projDesc}`:''}\n${world.length?`World: ${world.slice(0,3).map(e=>`${e.title}: ${e.content.slice(0,100)}`).join('; ')}`:''}${povChar?`\nPOV: ${povChar.title}, ${povChar.role}${povChar.class?`, ${povChar.class}`:''}${povChar.traits?`. Traits: ${povChar.traits}`:''}`:''}\nGenerate concrete, specific scene beat skeletons. Be specific to the genre. No generic beats.`;
+    const prompt = `Generate a scene scaffold for a ${archetype} scene.\n${pov?`POV: ${pov}\n`:''}${goal?`Context: ${goal}\n`:''}\nReturn EXACTLY 6-8 numbered beats, one per line, starting with number and period. No extra text.`;
+    try {
+      const txt = await callClaude(sys, prompt);
+      const parsed = txt.split('\n').map(l=>l.trim()).filter(l=>/^\d+\./.test(l)).map(l=>l.replace(/^\d+\.\s*/,''));
+      setBeats(parsed.length>0 ? parsed : txt.split('\n').filter(l=>l.trim()).slice(0,8));
+    } catch(e) { setBeats(['Error generating — please try again']); }
+    setBusy(false);
+  };
+  const copyAll = () => { if(!beats) return; navigator.clipboard.writeText(beats.map((b,i)=>`${i+1}. ${b}`).join('\n')); };
+  return (
+    <div style={{display:'flex',flexDirection:'column',height:'100%'}}>
+      <div className="sec-hdr"><h1 className="sec-title">Scene <em>Scaffold</em></h1></div>
+      <div style={{flex:1,overflowY:'auto',padding:'16px 20px'}}>
+        <div style={{maxWidth:580}}>
+          <div className="f2">
+            <div className="fg f-full"><label className="fl">Scene Archetype</label><select className="fsel" value={archetype} onChange={e=>setArchetype(e.target.value)}>{ARCHETYPES.map(a=><option key={a}>{a}</option>)}</select></div>
+            <div className="fg"><label className="fl">POV Character</label><select className="fsel" value={pov} onChange={e=>setPov(e.target.value)}><option value="">— Any / Unspecified —</option>{chars.map(c=><option key={c.id}>{c.title}</option>)}</select></div>
+          </div>
+          <div className="fg"><label className="fl">Scene Goal / Context</label><textarea className="fta" style={{minHeight:85}} value={goal} onChange={e=>setGoal(e.target.value)} placeholder="What does this scene need to accomplish? What's the setup?"/></div>
+          <button className="btn btn-a" onClick={generate} disabled={busy}>{busy?'Scaffolding...':'Generate Beat Skeleton'}</button>
+        </div>
+        {busy && <div style={{display:'flex',gap:5,alignItems:'center',margin:'16px 0'}}><div className="dot"/><div className="dot"/><div className="dot"/><span style={{fontFamily:'JetBrains Mono',fontSize:11,color:'var(--txd)',marginLeft:4}}>Constructing...</span></div>}
+        {beats && <div className="gen-out" style={{maxWidth:620,marginTop:18}}>
+          <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:12}}>
+            <div className="fl" style={{margin:0}}>{archetype} · {beats.length} beats</div>
+            <button className="btn btn-t btn-sm" onClick={copyAll}>Copy All</button>
+          </div>
+          {beats.map((b,i)=><div key={i} className="beat-out-item"><span className="beat-num">{i+1}.</span><span>{b}</span></div>)}
+        </div>}
+      </div>
+    </div>
+  );
+}
+
+/* ── AI ASSISTANT ── */
+function AIAssistant({projName, projDesc, pd}) {
+  const [msgs, setMsgs] = useState([]); const [input, setInput] = useState(''); const [busy, setBusy] = useState(false);
+  const bottomRef = useRef(null);
+  const world=pd.world||[]; const chars=pd.characters||[]; const outline=pd.outline||[];
+  const foreshadow=pd.foreshadowing||[]; const log=pd.continuityLog||[]; const fields=pd.continuityFields||[];
+  const ctxCount = world.length+chars.length+outline.length;
+  useEffect(()=>{ bottomRef.current?.scrollIntoView({behavior:'smooth'}); },[msgs]);
+  const sys = () => {
+    let p = `You are an expert LitRPG writing assistant for "${projName||'Untitled'}".${projDesc?` ${projDesc}`:''} Help with scene drafting, editing, consistency checking, system screen writing, character voice, plot structure. Be specific and consistent with the world below.\n`;
+    if(world.length){p+='\n=== WORLD BIBLE ===';world.forEach(e=>{p+=`\n[${e.category.toUpperCase()}] ${e.title}: ${e.content}`;});}
+    if(chars.length){p+='\n\n=== CHARACTERS ===';chars.forEach(c=>{p+=`\n${c.title} | ${c.role}${c.class?` | ${c.class}`:''}${c.level?` | Lv${c.level}`:''}`;if(Object.keys(c.stats||{}).length)p+=` | Stats: ${Object.entries(c.stats).map(([k,v])=>`${k}:${v}`).join(', ')}`;if(c.traits)p+=`\nTraits: ${c.traits}`;if(c.voice)p+=`\nVoice: ${c.voice}`;if(c.background)p+=`\nBackground: ${c.background}`;});}
+    if(outline.length){p+='\n\n=== OUTLINE ===';const acts=[...new Set(outline.map(c=>c.act))].sort();acts.forEach(a=>{p+=`\nAct ${a}:`;outline.filter(c=>c.act===a).sort((x,y)=>Number(x.number)-Number(y.number)).forEach(c=>{p+=`\n  Ch.${c.number||'?'} "${c.title}"`;if(c.beats.length)p+=` — ${c.beats.join(' | ')}`;});});}
+    if(fields.length&&log.length){p+='\n\n=== CONTINUITY LOG ===';log.forEach(e=>{p+=`\nCh.${e.chapterNum} "${e.chapterTitle}": ${fields.map(f=>`${f}=${e.values?.[f]||'?'}`).join(', ')}`;});}
+    if(foreshadow.some(i=>!i.resolved)){p+='\n\n=== UNRESOLVED FORESHADOWING ===';foreshadow.filter(i=>!i.resolved).forEach(i=>{p+=`\nCh.${i.chapterPlanted}: ${i.detail} → Payoff: ${i.payoff||'TBD'}`;});}
+    return p;
+  };
+  const send = async () => {
+    if(!input.trim()||busy) return;
+    const um = {role:'user',content:input.trim()}; const nm = [...msgs,um];
+    setMsgs(nm); setInput(''); setBusy(true);
+    try {
+      const r = await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,system:sys(),messages:nm})});
+      const d = await r.json(); const txt = d.content?.find(b=>b.type==='text')?.text||'(No response)';
+      setMsgs(m=>[...m,{role:'assistant',content:txt}]);
+    } catch { setMsgs(m=>[...m,{role:'assistant',content:'Connection error — please try again.'}]); }
+    setBusy(false);
+  };
+  const renderMsg = t => {
+    const lines=t.split('\n'); const els=[]; let li=null;
+    lines.forEach((l,i)=>{
+      const h3=l.match(/^###\s+(.+)/); const bul=l.match(/^[\*\-]\s+(.+)/); const num=l.match(/^\d+\.\s+(.+)/);
+      if(h3){if(li){els.push(<ul key={`u${i}`} style={{paddingLeft:15,marginBottom:'0.4em'}}>{li}</ul>);li=null;}els.push(<h3 key={i}>{h3[1]}</h3>);}
+      else if(bul||num){if(!li)li=[];li.push(<li key={i} dangerouslySetInnerHTML={{__html:fmt((bul||num)[1])}}/>);}
+      else{if(li){els.push(<ul key={`u${i}`} style={{paddingLeft:15,marginBottom:'0.4em'}}>{li}</ul>);li=null;}if(l.trim())els.push(<p key={i} dangerouslySetInnerHTML={{__html:fmt(l)}}/>);else if(i<lines.length-1)els.push(<p key={i}>&nbsp;</p>);}
+    });
+    if(li)els.push(<ul key="ue" style={{paddingLeft:15,marginBottom:'0.4em'}}>{li}</ul>); return els;
+  };
+  const fmt = s => s.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/\*(.+?)\*/g,'<em>$1</em>').replace(/`(.+?)`/g,'<code>$1</code>');
+  const SUGG = ['Draft the opening scene of chapter 1','Write a system notification for a skill unlock','Check for consistency issues in my mechanics','Suggest 5 plot complications for the next arc',"Write dialogue in my protagonist's voice"];
+  return (
+    <div className="chat-wrap">
+      <div className="ctx-bar"><div className={`ctx-dot ${ctxCount>0?'':'off'}`}/><span className="ctx-txt">{ctxCount>0?`Context: ${world.length} lore · ${chars.length} chars · ${outline.length} chapters · ${foreshadow.filter(i=>!i.resolved).length} planted · ${log.length} log entries`:'No context loaded — fill in the other tabs first'}</span></div>
+      <div className="msgs">
+        {msgs.length===0 && <div style={{margin:'auto',textAlign:'center',padding:'28px 18px'}}>
+          <div style={{fontSize:28,opacity:.2,marginBottom:10}}>✦</div>
+          <div style={{fontFamily:"'IM Fell English',serif",fontSize:18,color:'var(--txd)',marginBottom:5}}>Your writing assistant</div>
+          <div style={{fontSize:13,color:'var(--txf)',maxWidth:300,margin:'0 auto 20px'}}>Full project context loaded — draft scenes, check consistency, brainstorm arcs...</div>
+          <div style={{display:'flex',flexWrap:'wrap',gap:6,justifyContent:'center'}}>{SUGG.map((s,i)=><button key={i} onClick={()=>setInput(s)} style={{background:'var(--card)',border:'1px solid var(--b)',color:'var(--txd)',fontFamily:"'Crimson Pro',serif",fontSize:13,padding:'5px 11px',borderRadius:4,cursor:'pointer'}}>{s}</button>)}</div>
+        </div>}
+        {msgs.map((m,i)=><div key={i} className={`msg ${m.role==='user'?'u':'a'}`}><div className="bubble">{m.role==='user'?<p>{m.content}</p>:renderMsg(m.content)}</div></div>)}
+        {busy && <div className="msg a"><div className="bubble"><div className="dots"><div className="dot"/><div className="dot"/><div className="dot"/></div></div></div>}
+        <div ref={bottomRef}/>
+      </div>
+      <div className="chat-bar">
+        <textarea className="chat-in" value={input} onChange={e=>setInput(e.target.value)} onKeyDown={e=>e.key==='Enter'&&!e.shiftKey&&(e.preventDefault(),send())} placeholder="Draft a scene, check consistency, generate a system screen... (Enter to send)" rows={1}/>
+        <button className="send" onClick={send} disabled={busy||!input.trim()}>↑</button>
+      </div>
+    </div>
+  );
+}
+
+/* ── MAIN APP ── */
+const TABS = [
+  {id:'world',ico:'📜',lbl:'LORE',div:false},
+  {id:'characters',ico:'⚔',lbl:'CHARS',div:false},
+  {id:'outline',ico:'📋',lbl:'PLOT',div:true},
+  {id:'log',ico:'📊',lbl:'LOG',div:false},
+  {id:'foreshadow',ico:'🔮',lbl:'FORE',div:false},
+  {id:'ideas',ico:'💡',lbl:'IDEAS',div:true},
+  {id:'screens',ico:'🖥',lbl:'SCRN',div:false},
+  {id:'names',ico:'🎲',lbl:'NAMES',div:false},
+  {id:'scaffold',ico:'🏗',lbl:'SCAF',div:true},
+  {id:'ai',ico:'✦',lbl:'AI',div:false},
+];
+
+function App() {
+  const [app, setApp] = useState(null);
+  const [tab, setTab] = useState('world');
+  const [loading, setLoading] = useState(true);
+  const [npModal, setNpModal] = useState(false);
+  const [npForm, setNpForm] = useState({name:'',description:''});
+  const [toast, setToast] = useState(null);
+
+  useEffect(() => { const d = loadStore(); setApp(d); setLoading(false); }, []);
+
+  const update = d => { setApp(d); saveStore(d); };
+  const curProj = app?.projects.find(p=>p.id===app.cur);
+  const curPd = mergePd(app?.data[app?.cur]||{});
+  const updPd = patch => update({...app,data:{...app.data,[app.cur]:{...curPd,...patch}}});
+  const createProj = () => {
+    if(!npForm.name.trim()) return;
+    const id = uid();
+    update({...app,projects:[...app.projects,{id,...npForm}],cur:id,data:{...app.data,[id]:defPd()}});
+    setNpModal(false); setNpForm({name:'',description:''});
+  };
+  const delProj = id => {
+    const ps = app.projects.filter(p=>p.id!==id); const d={...app.data}; delete d[id];
+    update({...app,projects:ps,cur:ps[0]?.id||null,data:d});
+  };
+
+  if (loading) return <div style={{display:'flex',alignItems:'center',justifyContent:'center',height:'100vh',fontFamily:"'IM Fell English',serif",color:'var(--txd)',fontSize:19}}>Loading Scriptorium...</div>;
+
+  return (
+    <div className="app">
+      <div className="hdr">
+        <div className="hdr-logo">SCRIPTORIUM <span>LitRPG Writing Studio</span></div>
+        <div className="hdr-sep"/>
+        {app.projects.length>0
+          ? <select className="proj-sel" value={app.cur||''} onChange={e=>update({...app,cur:e.target.value})}>{app.projects.map(p=><option key={p.id} value={p.id}>{p.name}</option>)}</select>
+          : <span style={{fontSize:13,color:'var(--txf)',fontStyle:'italic'}}>No projects</span>}
+        <button className="btn btn-a btn-sm" onClick={()=>setNpModal(true)}>+ Project</button>
+        {curProj && <button className="btn btn-d btn-sm" onClick={()=>{if(window.confirm(`Delete "${curProj.name}"?`))delProj(curProj.id);}}>✕</button>}
+      </div>
+      <div className="main">
+        <div className="sidebar">
+          {TABS.map(t => <React.Fragment key={t.id}>{t.div&&<div className="nav-div"/>}<button className={`nav-btn ${tab===t.id?'on':''}`} onClick={()=>setTab(t.id)} title={t.id}><span>{t.ico}</span><span className="nav-lbl">{t.lbl}</span></button></React.Fragment>)}
+        </div>
+        <div className="content">
+          {!curProj
+            ? <div className="no-proj"><h2>No Project Selected</h2><p>Create a project to begin. Each has its own lore, characters, outline, and tracking.</p><button className="btn btn-a" onClick={()=>setNpModal(true)}>Create Your First Project</button></div>
+            : <>
+                {tab==='world'       && <WorldBible        pd={curPd} onUpdate={updPd}/>}
+                {tab==='characters'  && <Characters        pd={curPd} onUpdate={updPd}/>}
+                {tab==='outline'     && <Outline           pd={curPd} onUpdate={updPd}/>}
+                {tab==='screens'     && <SystemScreens     pd={curPd} onUpdate={updPd} toast={setToast}/>}
+                {tab==='log'         && <ContinuityLog     pd={curPd} onUpdate={updPd}/>}
+                {tab==='ideas'       && <IdeaCapture       pd={curPd} onUpdate={updPd}/>}
+                {tab==='foreshadow'  && <ForeshadowTracker pd={curPd} onUpdate={updPd}/>}
+                {tab==='names'       && <NameGenerator     pd={curPd} projName={curProj.name}/>}
+                {tab==='scaffold'    && <SceneScaffold     pd={curPd} projName={curProj.name} projDesc={curProj.description}/>}
+                {tab==='ai'          && <AIAssistant       projName={curProj.name} projDesc={curProj.description} pd={curPd}/>}
+              </>}
+        </div>
+      </div>
+      {npModal && <div className="overlay" onClick={e=>e.target.className==='overlay'&&setNpModal(false)}><div className="modal">
+        <div className="m-title">New Project</div>
+        <div className="fg"><label className="fl">Project Name</label><input className="fi" value={npForm.name} onChange={e=>setNpForm({...npForm,name:e.target.value})} placeholder="e.g. Blood Markers" autoFocus onKeyDown={e=>e.key==='Enter'&&createProj()}/></div>
+        <div className="fg"><label className="fl">Short Description (optional)</label><textarea className="fta" style={{minHeight:75}} value={npForm.description} onChange={e=>setNpForm({...npForm,description:e.target.value})} placeholder="Tone, setting, protagonist... the AI uses this as context."/></div>
+        <div className="m-foot"><button className="btn btn-g" onClick={()=>setNpModal(false)}>Cancel</button><button className="btn btn-a" onClick={createProj}>Create</button></div>
+      </div></div>}
+      {toast && <Toast msg={toast} onDone={()=>setToast(null)}/>}
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
