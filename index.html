@@ -1772,8 +1772,11 @@ function App() {
         <button className={`key-btn ${hasKey?'set':'unset'}`} onClick={()=>{setKeyInput(getKey());setKeyModal(true);}} title={hasKey?'API key set — click to change':'No API key — click to add'}>🔑</button>
         <div className="hdr-sep"/>
         {app.projects.length>0
-          ? <select className="proj-sel" value={app.cur||''} onChange={e=>update({...app,cur:e.target.value})}>{app.projects.map(p=><option key={p.id} value={p.id}>{p.name}</option>)}</select>
-          : <span style={{fontSize:13,color:'var(--txf)',fontStyle:'italic'}}>No projects</span>}
+          ? <select className="proj-sel" value={app.cur||''} onChange={e=>update({...app,cur:e.target.value||null})}>
+              <option value="">— Select project —</option>
+              {app.projects.map(p=><option key={p.id} value={p.id}>{p.name}</option>)}
+            </select>
+          : <span style={{fontSize:13,color:'var(--txf)',fontStyle:'italic'}}>No projects yet</span>}
         <button className="btn btn-a btn-sm" onClick={()=>setNpModal(true)}>+ Project</button>
         {curProj && <button className="btn btn-d btn-sm" onClick={()=>{if(window.confirm(`Delete "${curProj.name}"?`))delProj(curProj.id);}}>✕</button>}
       </div>
@@ -1783,7 +1786,35 @@ function App() {
         </div>
         <div className="content">
           {!curProj
-            ? <div className="no-proj"><h2>No Project Selected</h2><p>Create a project to begin. Each has its own lore, characters, outline, and tracking.</p><button className="btn btn-a" onClick={()=>setNpModal(true)}>Create Your First Project</button></div>
+            ? <div style={{display:'flex',flexDirection:'column',height:'100%',overflowY:'auto',padding:'32px 40px'}}>
+                <div style={{fontFamily:"'IM Fell English',serif",fontSize:28,color:'var(--txb)',marginBottom:6}}>SCRIPTORIUM</div>
+                <div style={{fontFamily:'JetBrains Mono',fontSize:11,color:'var(--txd)',letterSpacing:'.1em',textTransform:'uppercase',marginBottom:32}}>LitRPG Writing Studio</div>
+                {app.projects.length > 0 && <>
+                  <div style={{fontFamily:'JetBrains Mono',fontSize:10,color:'var(--tl)',textTransform:'uppercase',letterSpacing:'.12em',marginBottom:14}}>Your Projects</div>
+                  <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(220px,1fr))',gap:10,marginBottom:32}}>
+                    {app.projects.map(p => {
+                      const pd = mergePd(app.data[p.id]||{});
+                      const wc = (pd.wordCounts||[]).reduce((s,w)=>s+w.actual,0);
+                      return (
+                        <div key={p.id} onClick={()=>update({...app,cur:p.id})}
+                          style={{background:'var(--card)',border:'1px solid var(--b)',borderRadius:6,padding:'14px 16px',cursor:'pointer',transition:'all .13s'}}
+                          onMouseOver={e=>{e.currentTarget.style.borderColor='var(--acd)';e.currentTarget.style.background='var(--acg)';}}
+                          onMouseOut={e=>{e.currentTarget.style.borderColor='var(--b)';e.currentTarget.style.background='var(--card)';}}>
+                          <div style={{fontFamily:"'IM Fell English',serif",fontSize:19,color:'var(--txb)',marginBottom:6}}>{p.name}</div>
+                          {p.description && <div style={{fontSize:13,color:'var(--txd)',marginBottom:10,lineHeight:1.5,fontStyle:'italic'}}>{p.description.slice(0,80)}{p.description.length>80?'…':''}</div>}
+                          <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
+                            {pd.characters.length>0 && <span style={{fontFamily:'JetBrains Mono',fontSize:9,color:'var(--txd)',textTransform:'uppercase',letterSpacing:'.07em'}}>{pd.characters.length} chars</span>}
+                            {pd.outline.length>0 && <span style={{fontFamily:'JetBrains Mono',fontSize:9,color:'var(--txd)',textTransform:'uppercase',letterSpacing:'.07em'}}>{pd.outline.length} chapters</span>}
+                            {wc>0 && <span style={{fontFamily:'JetBrains Mono',fontSize:9,color:'var(--ac)',textTransform:'uppercase',letterSpacing:'.07em'}}>{(wc/1000).toFixed(1)}k words</span>}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </>}
+                <div style={{fontFamily:'JetBrains Mono',fontSize:10,color:'var(--tl)',textTransform:'uppercase',letterSpacing:'.12em',marginBottom:14}}>Start Something New</div>
+                <button className="btn btn-a" style={{alignSelf:'flex-start',fontSize:14,padding:'8px 18px'}} onClick={()=>setNpModal(true)}>+ New Project</button>
+              </div>
             : <>
                 {tab==='world'       && <WorldBible        pd={curPd} onUpdate={updPd} onSendToAI={onSendToAI}/>}
                 {tab==='characters'  && <Characters        pd={curPd} onUpdate={updPd} onSendToAI={onSendToAI}/>}
