@@ -24,9 +24,13 @@ html,body,#root{height:100%;background:var(--bg);overflow:hidden;}
 body{font-family:'Crimson Pro',Georgia,serif;color:var(--tx);font-size:16px;line-height:1.55;}
 ::-webkit-scrollbar{width:4px;height:4px;}::-webkit-scrollbar-track{background:transparent;}::-webkit-scrollbar-thumb{background:var(--b);border-radius:2px;}
 .app{display:flex;flex-direction:column;height:100vh;}
-.hdr{display:flex;align-items:center;gap:12px;padding:9px 16px;background:var(--sb);border-bottom:1px solid var(--b);flex-shrink:0;}
-.hdr-logo{font-family:'IM Fell English',serif;font-size:19px;color:var(--ac);letter-spacing:.04em;flex-shrink:0;}
-.hdr-logo span{font-size:11px;color:var(--txd);font-style:italic;margin-left:7px;}
+.hdr{display:flex;align-items:center;gap:8px;padding:9px 12px;background:var(--sb);border-bottom:1px solid var(--b);flex-shrink:0;overflow:hidden;}
+.hdr-logo{font-family:'IM Fell English',serif;font-size:18px;color:var(--ac);letter-spacing:.04em;flex-shrink:0;}
+.hdr-logo span{display:none;}
+.key-btn{width:32px;height:28px;background:transparent;border:1px solid;border-radius:3px;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .14s;}
+.key-btn.set{background:rgba(74,124,90,0.15);border-color:rgba(74,124,90,0.5);}
+.key-btn.unset{background:var(--dgd);border-color:rgba(155,64,64,0.38);animation:pulse-key 2s ease infinite;}
+@keyframes pulse-key{0%,100%{opacity:1}50%{opacity:0.6}}
 .hdr-sep{width:1px;height:20px;background:var(--b);flex-shrink:0;}
 .spacer{flex:1;}
 .btn{font-family:'Crimson Pro',serif;font-size:13px;letter-spacing:.06em;padding:5px 12px;border-radius:3px;border:1px solid;cursor:pointer;transition:all .14s;text-transform:uppercase;white-space:nowrap;}
@@ -1765,13 +1769,13 @@ function App() {
       <div className="hdr">
         <div className="hdr-logo">SCRIPTORIUM <span>LitRPG Writing Studio</span></div>
         <div className="hdr-sep"/>
+        <button className={`key-btn ${hasKey?'set':'unset'}`} onClick={()=>{setKeyInput(getKey());setKeyModal(true);}} title={hasKey?'API key set — click to change':'No API key — click to add'}>🔑</button>
+        <div className="hdr-sep"/>
         {app.projects.length>0
           ? <select className="proj-sel" value={app.cur||''} onChange={e=>update({...app,cur:e.target.value})}>{app.projects.map(p=><option key={p.id} value={p.id}>{p.name}</option>)}</select>
           : <span style={{fontSize:13,color:'var(--txf)',fontStyle:'italic'}}>No projects</span>}
         <button className="btn btn-a btn-sm" onClick={()=>setNpModal(true)}>+ Project</button>
         {curProj && <button className="btn btn-d btn-sm" onClick={()=>{if(window.confirm(`Delete "${curProj.name}"?`))delProj(curProj.id);}}>✕</button>}
-        <div className="spacer"/>
-        <button className="btn btn-sm" onClick={()=>{setKeyInput(getKey());setKeyModal(true);}} style={{background:hasKey?'rgba(74,124,90,0.15)':'var(--dgd)',borderColor:hasKey?'rgba(74,124,90,0.5)':'rgba(155,64,64,0.38)',color:hasKey?'#5aaf6a':'var(--dg)'}} title="API Key">{hasKey?'🔑 Key Set':'🔑 No Key'}</button>
       </div>
       <div className="main">
         <div className="sidebar">
