@@ -31,6 +31,22 @@ body{font-family:'Crimson Pro',Georgia,serif;color:var(--tx);font-size:16px;line
 .key-btn.set{background:rgba(74,124,90,0.15);border-color:rgba(74,124,90,0.5);}
 .key-btn.unset{background:var(--dgd);border-color:rgba(155,64,64,0.38);animation:pulse-key 2s ease infinite;}
 @keyframes pulse-key{0%,100%{opacity:1}50%{opacity:0.6}}
+/* saved clips */
+.clip-card{background:var(--card);border:1px solid var(--b);border-radius:5px;padding:12px 14px;margin-bottom:8px;transition:border-color .12s;}
+.clip-card:hover{border-color:var(--bl);}
+.clip-tag{display:inline-flex;align-items:center;padding:1px 8px;border-radius:10px;font-size:10px;font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:.06em;margin-right:6px;border:1px solid;}
+.clip-tag.scene{color:#c47a4a;border-color:rgba(196,122,74,.4);background:rgba(196,122,74,.08);}
+.clip-tag.character{color:var(--tl);border-color:rgba(74,138,140,.4);background:var(--tld);}
+.clip-tag.plot{color:var(--ac);border-color:var(--acd);background:var(--acg);}
+.clip-tag.lore{color:#5aaf6a;border-color:rgba(90,175,106,.4);background:rgba(90,175,106,.08);}
+.clip-tag.mechanics{color:#9b5adf;border-color:rgba(155,90,223,.4);background:rgba(155,90,223,.08);}
+.clip-tag.other{color:var(--txd);border-color:var(--b);background:transparent;}
+.clip-body{font-size:15px;color:var(--tx);line-height:1.75;white-space:pre-wrap;margin:8px 0;}
+.clip-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.clip-time{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--txf);}
+.save-msg-btn{background:transparent;border:1px solid var(--b);color:var(--txd);font-family:'JetBrains Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.07em;padding:2px 7px;border-radius:2px;cursor:pointer;transition:all .13s;margin-top:8px;display:block;}
+.save-msg-btn:hover{border-color:var(--acd);color:var(--ac);background:var(--acg);}
+.save-msg-btn.saved-flash{border-color:var(--ok);color:#5aaf6a;background:rgba(74,124,90,0.1);}
 .hdr-sep{width:1px;height:20px;background:var(--b);flex-shrink:0;}
 .spacer{flex:1;}
 .btn{font-family:'Crimson Pro',serif;font-size:13px;letter-spacing:.06em;padding:5px 12px;border-radius:3px;border:1px solid;cursor:pointer;transition:all .14s;text-transform:uppercase;white-space:nowrap;}
@@ -242,7 +258,7 @@ const AK = 'scrip_apikey';
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,5);
 const getKey = () => localStorage.getItem(AK)||'';
 const setKey = k => localStorage.setItem(AK, k.trim());
-const defPd = () => ({world:[],characters:[],outline:[],screens:[],continuityFields:[],continuityLog:[],ideas:[],foreshadowing:[],wordCounts:[]});
+const defPd = () => ({world:[],characters:[],outline:[],screens:[],continuityFields:[],continuityLog:[],ideas:[],foreshadowing:[],wordCounts:[],savedClips:[]});
 const mergePd = pd => ({...defPd(),...pd});
 
 function loadStore() {
@@ -898,11 +914,12 @@ function SceneScaffold({pd, projName, projDesc}) {
 }
 
 /* ── AI ASSISTANT ── */
-function AIAssistant({projName, projDesc, pd, projId, pendingPrompt, onPromptConsumed, savedMsgs, onSaveMsgs}) {
+function AIAssistant({projName, projDesc, pd, projId, pendingPrompt, onPromptConsumed, savedMsgs, onSaveMsgs, onSaveClip}) {
   // Local state for correct async behaviour — no closure/stale-state issues
   const [msgs, setMsgs] = useState(savedMsgs || []);
   const [input, setInput] = useState('');
   const [busy, setBusy] = useState(false);
+  const [savedFlash, setSavedFlash] = useState({}); // tracks which msg indices just got saved
   const bottomRef = useRef(null);
   const msgsRef = useRef(msgs);  // ref so async callbacks always have the latest value
 
@@ -1066,6 +1083,16 @@ function AIAssistant({projName, projDesc, pd, projId, pendingPrompt, onPromptCon
             <div className="bubble">
               {m.role==='user' ? <p>{m.content}</p> : renderMsg(m.content)}
             </div>
+            {m.role==='assistant' && onSaveClip && (
+              <button
+                className={`save-msg-btn ${savedFlash[i]?'saved-flash':''}`}
+                onClick={() => {
+                  onSaveClip(m.content);
+                  setSavedFlash(prev => ({...prev,[i]:true}));
+                  setTimeout(() => setSavedFlash(prev => ({...prev,[i]:false})), 1800);
+                }}
+              >{savedFlash[i] ? '✓ Saved to Clips' : '+ Save to Clips'}</button>
+            )}
           </div>
         ))}
         {busy && (
@@ -1702,6 +1729,112 @@ function SeriesBibleExport({pd, projName, projDesc, projId, app, onRestoreApp, s
     </div>
   );
 }
+/* ── SAVED CLIPS ── */
+const CLIP_TAGS = ['scene','character','plot','lore','mechanics','other'];
+
+function SavedClips({pd, onUpdate}) {
+  const clips = pd.savedClips || [];
+  const [filter, setFilter] = useState('all');
+  const [editModal, setEditModal] = useState(false);
+  const [editForm, setEditForm] = useState({});
+  const [copied, setCopied] = useState(null);
+
+  const shown = filter === 'all' ? clips : clips.filter(c => c.tag === filter);
+  const fmt = ts => new Date(ts).toLocaleDateString('en-AU',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
+
+  const openEdit = clip => { setEditForm({...clip}); setEditModal(true); };
+  const saveEdit = () => {
+    onUpdate({savedClips: clips.map(c => c.id === editForm.id ? editForm : c)});
+    setEditModal(false);
+  };
+  const del = id => onUpdate({savedClips: clips.filter(c => c.id !== id)});
+  const copy = (text, id) => {
+    navigator.clipboard.writeText(text);
+    setCopied(id);
+    setTimeout(() => setCopied(null), 1500);
+  };
+
+  return (
+    <div style={{display:'flex',flexDirection:'column',height:'100%'}}>
+      <div className="sec-hdr">
+        <h1 className="sec-title">Saved <em>Clips</em></h1>
+        <div style={{display:'flex',alignItems:'center',gap:6}}>
+          {clips.length > 0 && <span style={{fontFamily:'JetBrains Mono',fontSize:10,color:'var(--txd)'}}>{clips.length} saved</span>}
+        </div>
+      </div>
+
+      {clips.length > 0 && (
+        <div style={{padding:'10px 20px 0',display:'flex',alignItems:'center',gap:6,flexShrink:0,flexWrap:'wrap'}}>
+          <span style={{fontFamily:'JetBrains Mono',fontSize:10,color:'var(--txd)',textTransform:'uppercase',letterSpacing:'.08em'}}>Filter:</span>
+          <button className={`clip-tag other`} onClick={()=>setFilter('all')} style={{opacity:filter==='all'?1:.45,cursor:'pointer'}}>all ({clips.length})</button>
+          {CLIP_TAGS.map(t => {
+            const c = clips.filter(cl=>cl.tag===t).length;
+            return c > 0 && <button key={t} className={`clip-tag ${t}`} onClick={()=>setFilter(t)} style={{opacity:filter===t?1:.45,cursor:'pointer'}}>{t} ({c})</button>;
+          })}
+        </div>
+      )}
+
+      <div style={{flex:1,overflowY:'auto',padding:'12px 20px'}}>
+        {clips.length === 0 && (
+          <div className="empty">
+            <div className="empty-i">📌</div>
+            <div className="empty-t">No saved clips yet</div>
+            <div className="empty-s">In the AI tab, click "+ Save to Clips" under any response to save it here</div>
+          </div>
+        )}
+        {shown.length === 0 && clips.length > 0 && (
+          <div className="empty"><div className="empty-t" style={{fontSize:14}}>No clips tagged "{filter}"</div></div>
+        )}
+        {shown.map(clip => (
+          <div key={clip.id} className="clip-card">
+            <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:4}}>
+              <div style={{display:'flex',alignItems:'center',gap:6,flexWrap:'wrap'}}>
+                <span className={`clip-tag ${clip.tag||'other'}`}>{clip.tag||'other'}</span>
+                {clip.label && <span style={{fontFamily:"'IM Fell English',serif",fontSize:15,color:'var(--txb)'}}>{clip.label}</span>}
+              </div>
+              <div style={{display:'flex',gap:5,flexShrink:0}}>
+                <button className="ib" onClick={()=>copy(clip.content,clip.id)} title="Copy">{copied===clip.id?'✓':'⎘'}</button>
+                <button className="ib" onClick={()=>openEdit(clip)} title="Edit label/tag">✎</button>
+                <button className="ib d" onClick={()=>del(clip.id)} title="Delete">✕</button>
+              </div>
+            </div>
+            <div className="clip-body">{clip.content}</div>
+            <div className="clip-meta">
+              <span className="clip-time">{fmt(clip.created)}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {editModal && (
+        <div className="overlay" onClick={e=>e.target.className==='overlay'&&setEditModal(false)}>
+          <div className="modal">
+            <div className="m-title">Edit Clip</div>
+            <div className="fg">
+              <label className="fl">Label (optional)</label>
+              <input className="fi" value={editForm.label||''} onChange={e=>setEditForm({...editForm,label:e.target.value})} placeholder="e.g. Natan's level-up scene draft" autoFocus/>
+            </div>
+            <div className="fg">
+              <label className="fl">Tag</label>
+              <select className="fsel" value={editForm.tag||'other'} onChange={e=>setEditForm({...editForm,tag:e.target.value})}>
+                {CLIP_TAGS.map(t=><option key={t}>{t}</option>)}
+              </select>
+            </div>
+            <div className="fg">
+              <label className="fl">Content</label>
+              <textarea className="fta" style={{minHeight:160}} value={editForm.content||''} onChange={e=>setEditForm({...editForm,content:e.target.value})}/>
+            </div>
+            <div className="m-foot">
+              <button className="btn btn-g" onClick={()=>setEditModal(false)}>Cancel</button>
+              <button className="btn btn-a" onClick={saveEdit}>Save</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 /* ── MAIN APP ── */
 const TABS = [
   {id:'world',      ico:'📜', lbl:'LORE',    div:false},
@@ -1719,6 +1852,7 @@ const TABS = [
   {id:'check',      ico:'🔍', lbl:'CHECK',   div:false},
   {id:'export',     ico:'↓',  lbl:'EXPORT',  div:false},
   {id:'ai',         ico:'✦',  lbl:'AI',      div:true},
+  {id:'clips',      ico:'📌', lbl:'CLIPS',   div:false},
 ];
 
 function App() {
@@ -1737,6 +1871,10 @@ function App() {
   const onSendToAI = text => { setAiDraft(text); setTab('ai'); };
   const savedMsgs = aiMsgs[app?.cur] || [];
   const onSaveMsgs = (projId, msgs) => setAiMsgs(prev => ({...prev, [projId]: msgs}));
+  const onSaveClip = content => {
+    const clip = {id:uid(), content, tag:'other', label:'', created:Date.now()};
+    updPd({savedClips:[clip,...(curPd.savedClips||[])]});
+  };
 
   useEffect(() => {
     const d = loadStore(); setApp(d); setLoading(false);
@@ -1830,7 +1968,8 @@ function App() {
                 {tab==='words'       && <WordCountTracker   pd={curPd} onUpdate={updPd}/>}
                 {tab==='check'       && <ConsistencyChecker pd={curPd} projName={curProj.name}/>}
                 {tab==='export'      && <SeriesBibleExport  pd={curPd} projName={curProj.name} projDesc={curProj.description} projId={curProj.id} app={app} onRestoreApp={onRestoreApp} setToast={setToast}/>}
-                {tab==='ai'          && <AIAssistant        projName={curProj.name} projDesc={curProj.description} pd={curPd} projId={curProj.id} pendingPrompt={aiDraft} onPromptConsumed={()=>setAiDraft(null)} savedMsgs={savedMsgs} onSaveMsgs={onSaveMsgs}/>}
+                {tab==='ai'          && <AIAssistant        projName={curProj.name} projDesc={curProj.description} pd={curPd} projId={curProj.id} pendingPrompt={aiDraft} onPromptConsumed={()=>setAiDraft(null)} savedMsgs={savedMsgs} onSaveMsgs={onSaveMsgs} onSaveClip={onSaveClip}/>}
+                {tab==='clips'       && <SavedClips         pd={curPd} onUpdate={updPd}/>}
               </>}
         </div>
       </div>
