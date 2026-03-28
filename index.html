@@ -47,6 +47,17 @@ body{font-family:'Crimson Pro',Georgia,serif;color:var(--tx);font-size:16px;line
 .save-msg-btn{background:transparent;border:1px solid var(--b);color:var(--txd);font-family:'JetBrains Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.07em;padding:2px 7px;border-radius:2px;cursor:pointer;transition:all .13s;margin-top:8px;display:block;}
 .save-msg-btn:hover{border-color:var(--acd);color:var(--ac);background:var(--acg);}
 .save-msg-btn.saved-flash{border-color:var(--ok);color:#5aaf6a;background:rgba(74,124,90,0.1);}
+/* extract modal */
+.ext-item{background:var(--card2);border:1px solid var(--b);border-radius:4px;padding:10px 12px;margin-bottom:6px;display:flex;align-items:flex-start;gap:10px;transition:border-color .12s;}
+.ext-item.sel{border-color:var(--acd);background:var(--acg);}
+.ext-item-check{width:16px;height:16px;flex-shrink:0;margin-top:2px;accent-color:var(--ac);cursor:pointer;}
+.ext-item-body{flex:1;min-width:0;}
+.ext-item-dest{font-family:'JetBrains Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:var(--tl);margin-bottom:3px;}
+.ext-item-title{font-size:14px;color:var(--txb);margin-bottom:3px;}
+.ext-item-preview{font-size:13px;color:var(--txd);line-height:1.55;white-space:pre-wrap;}
+.ext-modal{background:#1a1815;border:1px solid var(--bl);border-radius:8px;padding:20px;width:100%;max-width:600px;max-height:90vh;overflow-y:auto;}
+.ext-section-hdr{font-family:'JetBrains Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:var(--tl);padding:4px 0 8px;border-bottom:1px solid var(--b);margin-bottom:8px;margin-top:16px;}
+.ext-section-hdr:first-child{margin-top:0;}
 .hdr-sep{width:1px;height:20px;background:var(--b);flex-shrink:0;}
 .spacer{flex:1;}
 .btn{font-family:'Crimson Pro',serif;font-size:13px;letter-spacing:.06em;padding:5px 12px;border-radius:3px;border:1px solid;cursor:pointer;transition:all .14s;text-transform:uppercase;white-space:nowrap;}
@@ -914,12 +925,15 @@ function SceneScaffold({pd, projName, projDesc}) {
 }
 
 /* ── AI ASSISTANT ── */
-function AIAssistant({projName, projDesc, pd, projId, pendingPrompt, onPromptConsumed, savedMsgs, onSaveMsgs, onSaveClip}) {
+function AIAssistant({projName, projDesc, pd, projId, pendingPrompt, onPromptConsumed, savedMsgs, onSaveMsgs, onSaveClip, onUpdate}) {
   // Local state for correct async behaviour — no closure/stale-state issues
   const [msgs, setMsgs] = useState(savedMsgs || []);
   const [input, setInput] = useState('');
   const [busy, setBusy] = useState(false);
   const [savedFlash, setSavedFlash] = useState({}); // tracks which msg indices just got saved
+  const [extracting, setExtracting] = useState(false);
+  const [extractResults, setExtractResults] = useState(null); // [{dest, category, title, content, checked}]
+  const [extractApplying, setExtractApplying] = useState(false);
   const bottomRef = useRef(null);
   const msgsRef = useRef(msgs);  // ref so async callbacks always have the latest value
 
@@ -954,6 +968,62 @@ function AIAssistant({projName, projDesc, pd, projId, pendingPrompt, onPromptCon
   const world=pd.world||[]; const chars=pd.characters||[]; const outline=pd.outline||[];
   const foreshadow=pd.foreshadowing||[]; const log=pd.continuityLog||[]; const fields=pd.continuityFields||[];
   const ctxCount = world.length+chars.length+outline.length;
+
+  const extractFromChat = async () => {
+    if(!msgs.length) return;
+    const key = getKey();
+    if(!key) { updateMsgs(m=>[...m,{role:'assistant',content:'⚠ No API key — click 🔑 in the header first.'}]); return; }
+    setExtracting(true);
+    const transcript = msgs.map(m=>`${m.role==='user'?'USER':'ASSISTANT'}: ${m.content}`).join('\n\n');
+    const extractSys = `You are a data extraction assistant. Given a conversation transcript between a writer and an AI assistant about their LitRPG project, extract any concrete, useful information that could populate the following fields in a writing tool. Return ONLY a valid JSON array. Each item must have these exact keys: "dest" (one of: "world", "character", "outline", "idea"), "category" (for world: one of Mechanics/Magic System/Lore/Geography/Factions/History/Rules/Monsters/Items/Other; for character: the character's role such as Protagonist/Antagonist/Ally/NPC/Other; for outline: the act number as a string e.g. "1"; for idea: one of plot/character/mechanics/world/scene/other), "title" (short name/label), "content" (the full text to store). Only extract clear, concrete, useful content — not vague references or questions. Do not invent anything not present in the transcript. If there is nothing useful to extract, return an empty array []. Return ONLY the JSON array, no markdown, no explanation.`;
+    try {
+      const r = await fetch('https://api.anthropic.com/v1/messages', {
+        method:'POST',
+        headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+        body: JSON.stringify({model:'claude-sonnet-4-20250514', max_tokens:2000, system:extractSys, messages:[{role:'user',content:`Extract useful project information from this conversation transcript:\n\n${transcript.slice(0,12000)}`}]})
+      });
+      if(!r.ok) { const e=await r.json().catch(()=>({})); throw new Error(e?.error?.message||`API error ${r.status}`); }
+      const d = await r.json();
+      const txt = d.content?.find(b=>b.type==='text')?.text||'[]';
+      const clean = txt.replace(/```json|```/g,'').trim();
+      const items = JSON.parse(clean);
+      if(!Array.isArray(items)||items.length===0) {
+        updateMsgs(m=>[...m,{role:'assistant',content:'I scanned the conversation but couldn\'t find any clear entries to extract. Try having a more detailed discussion about your world, characters, or plot first.'}]);
+      } else {
+        setExtractResults(items.map((item,i)=>({...item, id:i, checked:true})));
+      }
+    } catch(e) {
+      if(e.message.includes('JSON')) { updateMsgs(m=>[...m,{role:'assistant',content:'Extraction returned an unexpected format. Try again.'}]); }
+      else { updateMsgs(m=>[...m,{role:'assistant',content:'Extract error: '+e.message}]); }
+    }
+    setExtracting(false);
+  };
+
+  const applyExtracted = () => {
+    if(!extractResults) return;
+    setExtractApplying(true);
+    const selected = extractResults.filter(i=>i.checked);
+    const patch = {};
+    selected.forEach(item => {
+      if(item.dest==='world') {
+        const entry = {id:uid(), title:item.title, category:item.category||'Other', content:item.content};
+        patch.world = [...(patch.world||pd.world||[]), entry];
+      } else if(item.dest==='character') {
+        const ch = {id:uid(), title:item.title, role:item.category||'Other', class:'', level:'', stats:{}, traits:'', voice:'', background:item.content, notes:''};
+        patch.characters = [...(patch.characters||pd.characters||[]), ch];
+      } else if(item.dest==='outline') {
+        const ch = {id:uid(), act:item.category||'1', number:'', title:item.title, beats:[item.content], notes:''};
+        patch.outline = [...(patch.outline||pd.outline||[]), ch];
+      } else if(item.dest==='idea') {
+        const idea = {id:uid(), text:`${item.title}\n${item.content}`, tag:item.category||'other', created:Date.now()};
+        patch.ideas = [...(patch.ideas||pd.ideas||[]), idea];
+      }
+    });
+    onUpdate(patch);
+    setExtractResults(null);
+    setExtractApplying(false);
+    updateMsgs(m=>[...m,{role:'assistant',content:`✓ Added ${selected.length} item${selected.length!==1?'s':''} to your project fields. Check World Bible, Characters, Plot, and Ideas tabs.`}]);
+  };
 
   const sys = () => {
     let p = `You are an expert LitRPG writing assistant for "${projName||'Untitled'}".${projDesc?` ${projDesc}`:''} Help with scene drafting, editing, consistency checking, system screen writing, character voice, plot structure. Be specific and consistent with the world below.\n`;
@@ -1051,14 +1121,17 @@ function AIAssistant({projName, projDesc, pd, projId, pendingPrompt, onPromptCon
             : 'No context loaded — fill in the other tabs first'}
         </span>
         <div style={{flex:1}}/>
-        {msgs.length > 0 && (
+        {msgs.length > 0 && (<>
+          <button className="qbtn" onClick={extractFromChat} disabled={extracting} title="Scan conversation and suggest entries to add to your world bible, characters, outline, and ideas">
+            {extracting ? '...' : '⟳ Extract to Fields'}
+          </button>
           <button
             onClick={() => updateMsgs([])}
             style={{background:'transparent',border:'none',cursor:'pointer',color:'var(--txf)',fontFamily:'JetBrains Mono',fontSize:9,textTransform:'uppercase',letterSpacing:'.07em',padding:'2px 6px',borderRadius:2}}
             onMouseOver={e=>e.currentTarget.style.color='var(--dg)'}
             onMouseOut={e=>e.currentTarget.style.color='var(--txf)'}
           >Clear chat</button>
-        )}
+        </>)}
       </div>
       <div className="msgs">
         {msgs.length === 0 && (
@@ -1115,6 +1188,47 @@ function AIAssistant({projName, projDesc, pd, projId, pendingPrompt, onPromptCon
         />
         <button className="send" onClick={send} disabled={busy || !input.trim()}>↑</button>
       </div>
+      {/* Extract results modal */}
+      {extractResults && (
+        <div className="overlay" onClick={e=>e.target.className==='overlay'&&setExtractResults(null)}>
+          <div className="ext-modal">
+            <div className="m-title">Extract to Fields</div>
+            <p style={{fontSize:13,color:'var(--txd)',marginBottom:14,lineHeight:1.65}}>
+              Found {extractResults.length} item{extractResults.length!==1?'s':''} to extract from this conversation. Tick the ones you want to add, then click Apply.
+            </p>
+            {['world','character','outline','idea'].map(dest => {
+              const group = extractResults.filter(i=>i.dest===dest);
+              if(!group.length) return null;
+              const destLabel = {world:'World Bible',character:'Characters',outline:'Plot Outline',idea:'Ideas'};
+              return (
+                <div key={dest}>
+                  <div className="ext-section-hdr">{destLabel[dest]}</div>
+                  {group.map(item => (
+                    <div key={item.id} className={`ext-item ${item.checked?'sel':''}`}>
+                      <input type="checkbox" className="ext-item-check" checked={item.checked}
+                        onChange={e=>setExtractResults(prev=>prev.map(x=>x.id===item.id?{...x,checked:e.target.checked}:x))}/>
+                      <div className="ext-item-body">
+                        <div className="ext-item-dest">{destLabel[dest]} · {item.category}</div>
+                        <div className="ext-item-title">{item.title}</div>
+                        <div className="ext-item-preview">{item.content.slice(0,200)}{item.content.length>200?'…':''}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              );
+            })}
+            <div className="m-foot">
+              <button className="btn btn-g btn-sm" onClick={()=>setExtractResults(prev=>prev.map(x=>({...x,checked:false})))}>None</button>
+              <button className="btn btn-g btn-sm" onClick={()=>setExtractResults(prev=>prev.map(x=>({...x,checked:true})))}>All</button>
+              <div style={{flex:1}}/>
+              <button className="btn btn-g" onClick={()=>setExtractResults(null)}>Cancel</button>
+              <button className="btn btn-a" onClick={applyExtracted} disabled={extractApplying||!extractResults.some(i=>i.checked)}>
+                Apply {extractResults.filter(i=>i.checked).length} Items
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -1968,7 +2082,7 @@ function App() {
                 {tab==='words'       && <WordCountTracker   pd={curPd} onUpdate={updPd}/>}
                 {tab==='check'       && <ConsistencyChecker pd={curPd} projName={curProj.name}/>}
                 {tab==='export'      && <SeriesBibleExport  pd={curPd} projName={curProj.name} projDesc={curProj.description} projId={curProj.id} app={app} onRestoreApp={onRestoreApp} setToast={setToast}/>}
-                {tab==='ai'          && <AIAssistant        projName={curProj.name} projDesc={curProj.description} pd={curPd} projId={curProj.id} pendingPrompt={aiDraft} onPromptConsumed={()=>setAiDraft(null)} savedMsgs={savedMsgs} onSaveMsgs={onSaveMsgs} onSaveClip={onSaveClip}/>}
+                {tab==='ai'          && <AIAssistant        projName={curProj.name} projDesc={curProj.description} pd={curPd} projId={curProj.id} pendingPrompt={aiDraft} onPromptConsumed={()=>setAiDraft(null)} savedMsgs={savedMsgs} onSaveMsgs={onSaveMsgs} onSaveClip={onSaveClip} onUpdate={updPd}/>}
                 {tab==='clips'       && <SavedClips         pd={curPd} onUpdate={updPd}/>}
               </>}
         </div>
