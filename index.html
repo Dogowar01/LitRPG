@@ -975,12 +975,42 @@ function AIAssistant({projName, projDesc, pd, projId, pendingPrompt, onPromptCon
     if(!key) { updateMsgs(m=>[...m,{role:'assistant',content:'⚠ No API key — click 🔑 in the header first.'}]); return; }
     setExtracting(true);
     const transcript = msgs.map(m=>`${m.role==='user'?'USER':'ASSISTANT'}: ${m.content}`).join('\n\n');
-    const extractSys = `You are a data extraction assistant. Given a conversation transcript between a writer and an AI assistant about their LitRPG project, extract any concrete, useful information that could populate the following fields in a writing tool. Return ONLY a valid JSON array. Each item must have these exact keys: "dest" (one of: "world", "character", "outline", "idea"), "category" (for world: one of Mechanics/Magic System/Lore/Geography/Factions/History/Rules/Monsters/Items/Other; for character: the character's role such as Protagonist/Antagonist/Ally/NPC/Other; for outline: the act number as a string e.g. "1"; for idea: one of plot/character/mechanics/world/scene/other), "title" (short name/label), "content" (the full text to store). Only extract clear, concrete, useful content — not vague references or questions. Do not invent anything not present in the transcript. If there is nothing useful to extract, return an empty array []. Return ONLY the JSON array, no markdown, no explanation.`;
+
+    // Build a summary of existing data so Claude can match against it
+    const existingWorld = (pd.world||[]).map(e=>`[WORLD id="${e.id}" title="${e.title}" cat="${e.category}"]`).join('\n');
+    const existingChars = (pd.characters||[]).map(c=>`[CHAR id="${c.id}" name="${c.title}" role="${c.role}"]`).join('\n');
+    const existingOutline = (pd.outline||[]).map(c=>`[CHAPTER id="${c.id}" act="${c.act}" num="${c.number}" title="${c.title}"]`).join('\n');
+
+    const extractSys = `You are a data extraction assistant for a LitRPG writing tool. Given a conversation transcript, extract concrete useful information and determine whether each item should be ADDED as a new entry or APPENDED to an existing one.
+
+Return ONLY a valid JSON array. Each item must have these exact keys:
+- "dest": one of "world" | "character" | "outline" | "idea"
+- "action": "new" if this is a genuinely new entry, OR "append" if it adds to / refines an existing entry
+- "existingId": the id string of the existing entry to append to (only when action is "append", otherwise omit)
+- "existingTitle": the title of the existing entry being appended to (only when action is "append", for display)
+- "category": for world: Mechanics/Magic System/Lore/Geography/Factions/History/Rules/Monsters/Items/Other; for character: Protagonist/Antagonist/Ally/NPC/Other; for outline: act number as string e.g. "1"; for idea: plot/character/mechanics/world/scene/other
+- "title": short label for this piece of information
+- "content": the full text to store or append
+
+Rules:
+- Only extract clear, concrete, useful content. Do not invent anything.
+- If content clearly belongs to an existing entry (same topic, same character, same chapter), use action "append" with the correct existingId.
+- If it is genuinely new information with no matching existing entry, use action "new".
+- Do not create duplicate entries for things already fully covered in existing data.
+- If nothing useful to extract, return [].
+- Return ONLY the JSON array, no markdown, no explanation.
+
+EXISTING DATA:
+${existingWorld ? 'World Bible entries:\n'+existingWorld : 'World Bible: empty'}
+${existingChars ? 'Characters:\n'+existingChars : 'Characters: empty'}
+${existingOutline ? 'Outline chapters:\n'+existingOutline : 'Outline: empty'}`;
+
     try {
       const r = await fetch('https://api.anthropic.com/v1/messages', {
         method:'POST',
         headers:{'Content-Type':'application/json','x-api-key':key,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-        body: JSON.stringify({model:'claude-sonnet-4-20250514', max_tokens:2000, system:extractSys, messages:[{role:'user',content:`Extract useful project information from this conversation transcript:\n\n${transcript.slice(0,12000)}`}]})
+        body: JSON.stringify({model:'claude-sonnet-4-20250514', max_tokens:2000, system:extractSys,
+          messages:[{role:'user',content:`Extract and classify information from this conversation transcript:\n\n${transcript.slice(0,12000)}`}]})
       });
       if(!r.ok) { const e=await r.json().catch(()=>({})); throw new Error(e?.error?.message||`API error ${r.status}`); }
       const d = await r.json();
@@ -1003,26 +1033,65 @@ function AIAssistant({projName, projDesc, pd, projId, pendingPrompt, onPromptCon
     if(!extractResults) return;
     setExtractApplying(true);
     const selected = extractResults.filter(i=>i.checked);
-    const patch = {};
+
+    // Start patch from current project data so appends can find existing entries
+    const patch = {
+      world: [...(pd.world||[])],
+      characters: [...(pd.characters||[])],
+      outline: [...(pd.outline||[])],
+      ideas: [...(pd.ideas||[])],
+    };
+
+    let appended = 0, created = 0;
+
     selected.forEach(item => {
-      if(item.dest==='world') {
-        const entry = {id:uid(), title:item.title, category:item.category||'Other', content:item.content};
-        patch.world = [...(patch.world||pd.world||[]), entry];
-      } else if(item.dest==='character') {
-        const ch = {id:uid(), title:item.title, role:item.category||'Other', class:'', level:'', stats:{}, traits:'', voice:'', background:item.content, notes:''};
-        patch.characters = [...(patch.characters||pd.characters||[]), ch];
-      } else if(item.dest==='outline') {
-        const ch = {id:uid(), act:item.category||'1', number:'', title:item.title, beats:[item.content], notes:''};
-        patch.outline = [...(patch.outline||pd.outline||[]), ch];
-      } else if(item.dest==='idea') {
-        const idea = {id:uid(), text:`${item.title}\n${item.content}`, tag:item.category||'other', created:Date.now()};
-        patch.ideas = [...(patch.ideas||pd.ideas||[]), idea];
+      if(item.action === 'append' && item.existingId) {
+        // Append content to existing entry
+        if(item.dest === 'world') {
+          patch.world = patch.world.map(e => e.id === item.existingId
+            ? {...e, content: e.content + '\n\n— Added from chat —\n' + item.content}
+            : e);
+          appended++;
+        } else if(item.dest === 'character') {
+          patch.characters = patch.characters.map(c => c.id === item.existingId
+            ? {...c, notes: (c.notes ? c.notes + '\n\n' : '') + '— From chat: ' + item.title + ' —\n' + item.content}
+            : c);
+          appended++;
+        } else if(item.dest === 'outline') {
+          patch.outline = patch.outline.map(ch => ch.id === item.existingId
+            ? {...ch, beats: [...ch.beats, item.content]}
+            : ch);
+          appended++;
+        } else {
+          // Ideas don't really "append" — add as new
+          patch.ideas = [{id:uid(), text:`${item.title}\n${item.content}`, tag:item.category||'other', created:Date.now()}, ...patch.ideas];
+          created++;
+        }
+      } else {
+        // Create new entry
+        if(item.dest === 'world') {
+          patch.world = [...patch.world, {id:uid(), title:item.title, category:item.category||'Other', content:item.content}];
+          created++;
+        } else if(item.dest === 'character') {
+          patch.characters = [...patch.characters, {id:uid(), title:item.title, role:item.category||'Other', class:'', level:'', stats:{}, traits:'', voice:'', background:item.content, notes:''}];
+          created++;
+        } else if(item.dest === 'outline') {
+          patch.outline = [...patch.outline, {id:uid(), act:item.category||'1', number:'', title:item.title, beats:[item.content], notes:''}];
+          created++;
+        } else if(item.dest === 'idea') {
+          patch.ideas = [{id:uid(), text:`${item.title}\n${item.content}`, tag:item.category||'other', created:Date.now()}, ...patch.ideas];
+          created++;
+        }
       }
     });
+
     onUpdate(patch);
     setExtractResults(null);
     setExtractApplying(false);
-    updateMsgs(m=>[...m,{role:'assistant',content:`✓ Added ${selected.length} item${selected.length!==1?'s':''} to your project fields. Check World Bible, Characters, Plot, and Ideas tabs.`}]);
+    const parts = [];
+    if(created) parts.push(`${created} new`);
+    if(appended) parts.push(`${appended} appended to existing`);
+    updateMsgs(m=>[...m,{role:'assistant',content:`✓ ${parts.join(', ')} — check World Bible, Characters, Plot, and Ideas tabs.`}]);
   };
 
   const sys = () => {
@@ -1194,7 +1263,8 @@ function AIAssistant({projName, projDesc, pd, projId, pendingPrompt, onPromptCon
           <div className="ext-modal">
             <div className="m-title">Extract to Fields</div>
             <p style={{fontSize:13,color:'var(--txd)',marginBottom:14,lineHeight:1.65}}>
-              Found {extractResults.length} item{extractResults.length!==1?'s':''} to extract from this conversation. Tick the ones you want to add, then click Apply.
+              Found {extractResults.length} item{extractResults.length!==1?'s':''} in this conversation.
+              Items marked <span style={{color:'var(--tl)'}}>append</span> will add to an existing entry rather than create a new one.
             </p>
             {['world','character','outline','idea'].map(dest => {
               const group = extractResults.filter(i=>i.dest===dest);
@@ -1208,7 +1278,13 @@ function AIAssistant({projName, projDesc, pd, projId, pendingPrompt, onPromptCon
                       <input type="checkbox" className="ext-item-check" checked={item.checked}
                         onChange={e=>setExtractResults(prev=>prev.map(x=>x.id===item.id?{...x,checked:e.target.checked}:x))}/>
                       <div className="ext-item-body">
-                        <div className="ext-item-dest">{destLabel[dest]} · {item.category}</div>
+                        <div className="ext-item-dest" style={{display:'flex',alignItems:'center',gap:7}}>
+                          <span>{destLabel[dest]} · {item.category}</span>
+                          {item.action==='append'
+                            ? <span style={{background:'rgba(74,138,140,.15)',border:'1px solid rgba(74,138,140,.4)',color:'var(--tl)',borderRadius:2,padding:'0 5px',fontSize:8,letterSpacing:'.07em',textTransform:'uppercase'}}>+ append → {item.existingTitle||'existing'}</span>
+                            : <span style={{background:'var(--acg)',border:'1px solid var(--acd)',color:'var(--ac)',borderRadius:2,padding:'0 5px',fontSize:8,letterSpacing:'.07em',textTransform:'uppercase'}}>new entry</span>
+                          }
+                        </div>
                         <div className="ext-item-title">{item.title}</div>
                         <div className="ext-item-preview">{item.content.slice(0,200)}{item.content.length>200?'…':''}</div>
                       </div>
